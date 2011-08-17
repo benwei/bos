@@ -62,13 +62,19 @@ $(IMG_NAME): $(BOOT_LOADER)
 # System binary
 ########################
 
-package: $(IMG_NAME) $(SYSBIN)
+# this needs the root permission to execute
+package_by_mount: $(IMG_NAME) $(SYSBIN)
 	ls -la $(SYSBIN)
 	mkdir -p fda;\
 	mount -o loop $(IMG_NAME) fda -o fat=12;\
 	cp $(SYSBIN) fda;\
 	umount fda;\
 	rm -rf fda;
+
+# I like this needs mcopy from mtools without root permission
+package: $(IMG_NAME) $(SYSBIN)
+	mcopy -i $(IMG_NAME) $(SYSBIN)  ::
+	mdir -i $(IMG_NAME)
 
 run: package
 	make -C test IMG_NAME=$(IMG_NAME)

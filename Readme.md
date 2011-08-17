@@ -1,5 +1,7 @@
 # Build Environment
-# you need gcc in basic setup
+- you need gcc in basic setup
+- you need dd for generated the raw floppy image
+
 ## Ubuntu 10.04, 10.10 and 11.04
 - install nasm <br/>
 
@@ -10,6 +12,10 @@
 - install qemu <br/>
  $ sudo apt-get install qemu <br/>
  (tested with qemu version : 0.12.5 - 0.14.0)
+
+- install mtools <br/>
+ $ sudo apt-get install mtools
+ (Used to mcopy the MYOS.BIN to floppy image without root permission)
 
 ## Fedora 12
 - install nasm <br/>
@@ -24,10 +30,10 @@
   make <br/>
 
 ## How to package bos.img
-  - sudo make package 
+  - make package 
   - previous command generated image file <br/>
   -- ./bos.img # a floppy image with vfat-12
 
 ## build all and run
-  - sudo make run # run with qemu-system-x86_64
+  - make run # run with qemu-system-x86_64
 
