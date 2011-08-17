@@ -3,6 +3,10 @@
 - you need dd for generated the raw floppy image
 
 ## Ubuntu 10.04, 10.10 and 11.04
+- the most easy way to setup your environment on ubuntu by excuting script
+
+  sh ./scripts/setup_ubuntu.sh
+
 - install nasm <br/>
 
  $ sudo apt-get install nasm <br/>
