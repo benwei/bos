@@ -265,7 +265,9 @@ int pci_init(void)
 
 static int
 pci_bridge_attach(pci_pdata_t pcif) {
-#if 1
+
+/* compatable issue on line, disable this part code in advance */ 
+#if 0
 	uint32_t ioreg  = pci_conf_read(pcif, PCI_BRIDGE_STATIO_REG);
 	uint32_t busreg = pci_conf_read(pcif, PCI_BRIDGE_BUS_REG);
 	
