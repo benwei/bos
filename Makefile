@@ -88,7 +88,7 @@ package: $(IMG_NAME) $(SYSBIN)
 	mdir -i "$(IMG_NAME)"
 
 run: package
-	make -C test IMG_NAME="$(IMG_NAME)"
+	make -C test IMG_NAME="`pwd`/$(IMG_NAME)"
 
 bin: $(SYSBIN)
 hex:
