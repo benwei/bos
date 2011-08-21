@@ -127,7 +127,8 @@ void move_cursor(int x, int y) {
 	_movcursor(x, y);
 }
 
-#if 1
+#define HAVE_KERNEL_PUTS 1
+#if HAVE_KERNEL_PUTS
 int _cputchar(int c);
 void putchar(char c)
 {

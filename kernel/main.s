@@ -98,11 +98,6 @@ EnterStage3:
 bits 32
 	; interrupt
 	global load_gdt, load_idt
-	global asm_inthdr21, asm_inthdr27, asm_inthdr2c
-	extern _inthdr21, _inthdr27, _inthdr2c
-
-	global asm_inthdr20
-	extern _inthdr20
 
 	global asm_stihlt
 	global asm_hlt, asm_cli, asm_sti
@@ -235,73 +230,6 @@ store_cr0:		; void store_cr0(int cr0);
 	mov		eax,[esp+4]
 	mov		cr0,eax
 	ret
-
-asm_inthdr20:
-	push	es
-	push	ds
-	pushad
-	mov	eax,esp
-	push	eax
-	mov	ax,ss
-	mov	ds,ax
-	mov	es,ax
-	call	_inthdr20
-
-	pop	eax
-	popad
-	pop	ds
-	pop	es
-	iretd
-
-asm_inthdr21:
-	push	es
-	push	ds
-	pushad
-	mov	eax,esp
-	push	eax
-	mov	ax,ss
-	mov	ds,ax
-	mov	es,ax
-
-	call	_inthdr21
-
-	pop	eax
-	popad
-	pop	ds
-	pop	es
-	iretd
-
-asm_inthdr27:
-	push	es
-	push	ds
-	pushad
-	mov	eax,esp
-	push	eax
-	mov	ax,ss
-	mov	ds,ax
-	mov	es,ax
-	call	_inthdr27
-	pop	eax
-	popad
-	pop	ds
-	pop	es
-	iretd
-
-asm_inthdr2c:
-	push	es
-	push	ds
-	pushad
-	mov	eax,esp
-	push	eax
-	mov	ax,ss
-	mov	ds,ax
-	mov	es,ax
-	call	_inthdr2c
-	pop	eax
-	popad
-	pop	ds
-	pop	es
-	iretd
 
 memtest_sub:	; unsigned int memtest_sub(unsigned int start, unsigned int end)
 		push	edi

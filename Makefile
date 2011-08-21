@@ -1,23 +1,21 @@
 SYSNAME=MYOS
 SYSBIN=MYOS.BIN
 SBINS=$(OUTPUT_DIR)/$(SYSBIN)
-#IMG_NAME=/home/users/public/share/main.img
-CURR_PWD=$(shell pwd)
-IMG_NAME=$(CURR_PWD)/bos.img
+IMG_NAME=bos.img
 OUTPUT_DIR=.
 DD=dd
 
-# source files
+# defines for global use
+include ./mk.defines
 
+# source files
 SHELL_SRC=kernel/init.c kernel/kthread.c $(shell ls lib/*.c) $(shell ls blibc/*.c) $(shell ls apps/*.c)
-HW_DEP_ASM_SRC=kernel/main.s kernel/osfunc.s
+HW_DEP_ASM_SRC=kernel/main.s kernel/osfunc.s 
 
 # object files
 KERN_OBJ = $(SHELL_SRC:.c=.o)
 HW_DEP_ASM_OBJ = $(HW_DEP_ASM_SRC:.s=.o)
 
-CC = $(CROSS_COMPILE)gcc
-LD = $(CROSS_COMPILE)ld
 NASMW = nasm
 OBJCOPY = $(CROSS_COMPILE)objcopy
 
@@ -28,11 +26,24 @@ LDSCRIPT := ld-script.lds
 
 COMM_FLAGS=-nostdlib
 COMM_LDFLAGS=--no-undefined
+NASMW_LDFLAGS = -f elf32
+
+ifeq ($(KNAME),CYGWIN)
+# add some code for cygwin environment
+CROSS_COMPILE=/usr/local/cross/bin/i586-elf-
+LDFLAGS = $(COMM_FLAGS) -static -e _start -s -Ttext 500 -Map $(SYSNAME).map 
+else
 LDFLAGS = \
 	$(COMM_FLAGS) -static -e _start \
 	$(COMM_LDFLAGS) -X \
 	-T $(LDSCRIPT) \
-	-Map $(SYSNAME).map
+	-Map $(SYSNAME).map 
+endif
+
+CC = $(CROSS_COMPILE)gcc
+LD = $(CROSS_COMPILE)ld
+AR = $(CROSS_COMPILE)ar
+RANLIB = $(CROSS_COMPILE)ranlib
 
 
 COMM_OBJCOPYFLAGS=-R .pdr
@@ -56,7 +67,7 @@ $(BOOT_LOADER): boot/bootldr.s
 ########################
 $(IMG_NAME): $(BOOT_LOADER)
 	$(DD) if=$(OUTPUT_DIR)/bootldr.elf of=$@ seek=0 count=1
-	$(DD) if=/dev/zero of=$@ seek=1 count=2879
+	$(DD) if=/dev/zero of="$@" seek=1 count=2879
 
 ########################
 # System binary
@@ -73,11 +84,11 @@ package_by_mount: $(IMG_NAME) $(SYSBIN)
 
 # I like this needs mcopy from mtools without root permission
 package: $(IMG_NAME) $(SYSBIN)
-	mcopy -i $(IMG_NAME) $(SYSBIN)  ::
-	mdir -i $(IMG_NAME)
+	mcopy -i "$(IMG_NAME)" "$(SYSBIN)"  ::
+	mdir -i "$(IMG_NAME)"
 
 run: package
-	make -C test IMG_NAME=$(IMG_NAME)
+	make -C test IMG_NAME="$(IMG_NAME)"
 
 bin: $(SYSBIN)
 hex:
@@ -98,11 +109,11 @@ MYOS.BIN: %.BIN: myos.elf ld-script.lds
 	echo "convert $< $@"
 	$(OBJCOPY) $(OBJCOPYFLAGS) $< $@
 
-myos.elf: $(KERN_OBJ) $(HW_DEP_ASM_OBJ)
+myos.elf: $(HW_DEP_ASM_OBJ) $(KERN_OBJ)
 	$(LD) $(LDFLAGS) -o $@ $^
 
 $(HW_DEP_ASM_OBJ) : %.o : %.s
-	$(NASMW) -f elf32  $< -o $@  -Iinclude/ # -l $(@:.o=.lst)
+	$(NASMW) $(NASMW_LDFLAGS)  $< -o $@  -Iinclude/ # -l $(@:.o=.lst)
 
 clean:
 	rm -f $(IMG_NAME) *.elf *.img $(SYSBIN) *.o *.lst *.map $(KERN_OBJ) $(HW_DEP_ASM_OBJ) 
