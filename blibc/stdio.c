@@ -75,10 +75,9 @@ int strcmp(char *s1, char *s2)
 static const char *fd_msg[] = {"N/A", "360KB", "1.2MB", "720KB", "1.44MB", 0};
 const char *get_fd_msg(unsigned char c)
 {
-	if (c < 0 || c > 4) c = 0;
+	if (c > 4) c = 0;
 	return fd_msg[c];
 }
-
 
 int KEY_STATBIT_SHIFT = 1;
 static int key_statbits = 0;

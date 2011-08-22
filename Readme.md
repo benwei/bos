@@ -1,6 +1,35 @@
 # Build Environment
-- you need gcc in basic setup
-- you need dd for generated the raw floppy image
+- you need gcc and nasm
+- you need dd and mcopy for generated the raw floppy image
+
+## Windows XP sp3 + Cygwin
+- install cross gcc for Cygin (build by myself)
+   http://julu.myweb.hinet.net/Share/cygwin_toolchain4_bos0821.tgz <br/>
+   (md5sum: e06bdccb2c44c4cc65097399e8722d95)
+- use cygwin setup to install nasm
+- download from http://www.gnu.org/s/mtools/download.html
+./configure <br/>
+make <br/>
+make install <br/>
+(ps: /usr/local/bin/mcopy will be used)
+
+## Mac OS X (10.6.8)
+- install cross gcc for OSX <br/>
+   http://crossgcc.rts-software.org/doku.php 
+-- gcc-4.5.2-for-linux32.dmg (65.2 MB) <br/>
+   install to /usr/local/gcc-4.5.2-for-linux32/ <br/>
+-- gcc-4.5.2-for-linux64.dmg (71.7 MB)<br/>
+   /usr/local/gcc-4.5.2-for-linux64/<br/>
+
+### install mtools
+- download from http://www.gnu.org/s/mtools/download.html
+- build it with following configuration
+env CFLAGS="-arch i386" LDFLAGS="-arch i386 -liconv" ./configure  <br/>
+make <br/>
+sudo make install <br/>
+
+### install qemu nasm
+sudo brew install qemu nasm
 
 ## Ubuntu 10.04, 10.10 and 11.04
 - the most easy way to setup your environment on ubuntu by excuting script

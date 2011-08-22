@@ -1,11 +1,16 @@
 KNAMEFULL  = $(shell uname -s | sed 's/_.*//g')
 # cygwin on windows xp
 # CYGWIN_NT-5.1
-KNAME = $(KNAMEFULL)
+KNAME= $(KNAMEFULL)
 ifeq ($(KNAME),CYGWIN)
 EXEEXT = .exe
 DLLEXT = .dll
 else
+ifneq ($(shell which sw_vers),)
+KNAME=$(shell sw_vers -productName)
+else
+KNAME=$(shell uname -s)
+endif
 # testing on ubuntu
 EXEEXT =
 DLLEXT = .so

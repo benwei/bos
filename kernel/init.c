@@ -103,7 +103,6 @@ void _benmain(void)
 	tss_c.ldtr = 0;
 	tss_c.iomap = 0x40000000;
 	set_segmdesc(gdt + 3, 103, (int) &tss_a, AR_TSS32);
-	// set_segmdesc(gdt + 5, 103, (int) &tss_c, AR_TSS32);
 
 	task_init(memman);
 
