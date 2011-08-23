@@ -1,7 +1,7 @@
 SRCROOT=..
-include ../mk.defines
+include $(SRCROOT)/mk.defines
 
-ifeq ($(KNAME),Mac OS X)
+ifeq ($(KNAME),$(KNAME_OSX))
 MACHINE=pc
 else
 MACHINE=pc-0.11 

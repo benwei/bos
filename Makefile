@@ -19,9 +19,9 @@ HW_DEP_ASM_OBJ = $(HW_DEP_ASM_SRC:.s=.o)
 NASMW = nasm
 LDSCRIPT := ld-script.lds
 
-ifeq ($(KNAME),Mac OS X)
+ifeq ($(KNAME),$(KNAME_OSX))
 NASMW_LDFLAGS = -f elf
-MAC_CFLAGS=-m32 #-nostartfiles  
+MAC_CFLAGS=-m32
 else
 NASMW_LDFLAGS = -f elf32
 endif
@@ -37,7 +37,7 @@ ifeq ($(KNAME),CYGWIN)
 CROSS_COMPILE=/usr/local/cross/bin/i586-elf-
 LDFLAGS = $(COMM_FLAGS) -static -e _start -s -Ttext 500 -Map $(SYSNAME).map 
 else
-ifeq ($(KNAME),Mac OS X)
+ifeq ($(KNAME),$(KNAME_OSX))
 # add some code for osx environment
 CROSS_COMPILE=/usr/local/gcc-4.5.2-for-linux64/bin/x86_64-pc-linux-
 endif
@@ -95,7 +95,7 @@ package: $(IMG_NAME) $(SYSBIN)
 	mdir -i "$(IMG_NAME)"
 
 run: package
-	@#only support in well-setup Ubuntu and Mac OS X(only tried 10.6.8)
+	@#only support in well-setup Ubuntu and OSX (only tried 10.6.8)
 	make -C test IMG_NAME="`pwd`/$(IMG_NAME)"
 
 bin: $(SYSBIN)
