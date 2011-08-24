@@ -96,7 +96,7 @@ package: $(IMG_NAME) $(SYSBIN)
 
 run: package
 	@#only support in well-setup Ubuntu and Mac OS X(only tried 10.6.8)
-	make -C test IMG_NAME="`pwd`/$(IMG_NAME)"
+	make -C test IMG_NAME="../$(IMG_NAME)"
 
 bin: $(SYSBIN)
 hex:

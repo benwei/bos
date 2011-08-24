@@ -9,7 +9,11 @@ endif
 all: run
 
 run:
-	qemu-system-x86_64 -boot a -M $(MACHINE) -fda $(IMG_NAME)
+ifeq ($(KNAME),CYGWIN)
+	qemu -fda "$(IMG_NAME)"
+else
+	qemu-system-x86_64 -boot a -M $(MACHINE) -fda "$(IMG_NAME)"
+endif
 
 check:
 	@echo OS=$(KNAME); echo VM=$(MACHINE)
