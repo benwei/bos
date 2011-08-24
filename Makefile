@@ -19,9 +19,9 @@ HW_DEP_ASM_OBJ = $(HW_DEP_ASM_SRC:.s=.o)
 NASMW = nasm
 LDSCRIPT := ld-script.lds
 
-ifeq ($(KNAME),Mac OS X)
+ifeq ($(KNAME),$(KNAME_OSX))
 NASMW_LDFLAGS = -f elf
-MAC_CFLAGS=-m32 #-nostartfiles  
+MAC_CFLAGS=-m32
 else
 NASMW_LDFLAGS = -f elf32
 endif
@@ -32,12 +32,12 @@ COMM_LDFLAGS=--no-undefined -T $(LDSCRIPT) -Map $(SYSNAME).map
 CFLAGS =$(MAC_CFLAGS) -I. -Iinclude -Iapps \
 	-Wall -Werror -fno-builtin -O0 -g
 
-ifeq ($(KNAME),CYGWIN)
+ifeq ($(KNAME),$(KNAME_CYGWIN))
 # add some code for cygwin environment
 CROSS_COMPILE=/usr/local/cross/bin/i586-elf-
 LDFLAGS = $(COMM_FLAGS) -static -e _start -s -Ttext 500 -Map $(SYSNAME).map 
 else
-ifeq ($(KNAME),Mac OS X)
+ifeq ($(KNAME),$(KNAME_OSX))
 # add some code for osx environment
 CROSS_COMPILE=/usr/local/gcc-4.5.2-for-linux64/bin/x86_64-pc-linux-
 endif
@@ -79,7 +79,6 @@ $(IMG_NAME): $(BOOT_LOADER)
 ########################
 # System binary
 ########################
-
 # this needs the root permission to execute
 package_by_mount: $(IMG_NAME) $(SYSBIN)
 	ls -la $(SYSBIN)
@@ -95,7 +94,7 @@ package: $(IMG_NAME) $(SYSBIN)
 	mdir -i "$(IMG_NAME)"
 
 run: package
-	@#only support in well-setup Ubuntu and Mac OS X(only tried 10.6.8)
+	@#only support in well-setup Ubuntu and OSX(only tried 10.6.8)
 	make -C test IMG_NAME="../$(IMG_NAME)"
 
 bin: $(SYSBIN)

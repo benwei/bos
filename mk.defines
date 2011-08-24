@@ -1,8 +1,11 @@
 KNAMEFULL  = $(shell uname -s | sed 's/_.*//g')
+# KERNEL Name Defines
+KNAME_CYGWIN=CYGWIN
+KNAME_OSX=Mac OS X
 # cygwin on windows xp
 # CYGWIN_NT-5.1
 KNAME= $(KNAMEFULL)
-ifeq ($(KNAME),CYGWIN)
+ifeq ($(KNAME),$(KNAME_CYGWIN))
 EXEEXT = .exe
 DLLEXT = .dll
 else

@@ -7,13 +7,14 @@
    http://julu.myweb.hinet.net/Share/cygwin_toolchain4_bos0821.tgz <br/>
    (md5sum: e06bdccb2c44c4cc65097399e8722d95)
 - use cygwin setup to install nasm
-- download from http://www.gnu.org/s/mtools/download.html
+- download from http://www.gnu.org/s/mtools/download.html<br/>
 ./configure <br/>
 make <br/>
 make install <br/>
 (ps: /usr/local/bin/mcopy will be used)
 
 ## Mac OS X (10.6.8)
+- install xcode (tested with 4.0.2)
 - install cross gcc for OSX <br/>
    http://crossgcc.rts-software.org/doku.php 
 -- gcc-4.5.2-for-linux32.dmg (65.2 MB) <br/>

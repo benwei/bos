@@ -1,7 +1,7 @@
 SRCROOT=..
-include ../mk.defines
+include $(SRCROOT)/mk.defines
 
-ifeq ($(KNAME),Mac OS X)
+ifeq ($(KNAME),$(KNAME_OSX))
 MACHINE=pc
 else
 MACHINE=pc-0.11 
@@ -9,7 +9,7 @@ endif
 all: run
 
 run:
-ifeq ($(KNAME),CYGWIN)
+ifeq ($(KNAME),$(KNAME_CYGWIN))
 	qemu -fda "$(IMG_NAME)"
 else
 	qemu-system-x86_64 -boot a -M $(MACHINE) -fda "$(IMG_NAME)"
