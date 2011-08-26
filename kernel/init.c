@@ -14,6 +14,7 @@
 #include "os_tss.h"
 #include "os_mtask.h"
 #include "os_timer.h"
+#include "kthread.h"
 #include "bshell.h"
 
 /* pointer for global descriptor table */
@@ -63,14 +64,6 @@ void env_init()
 	floppy = get_floppy_info();
 }
 
-
-int getpid_from_task(struct task *t)
-{
-	return t->pid;
-}
-
-void thread_lazyman_sleep(int task_id);
-void thread_kb_io(int task_id);
 
 void _benmain(void)
 {

@@ -5,8 +5,7 @@
 * startup sleep and keyboard_io kernel thread
 * shell is running at keyboard_io kernel thread
 */
-
-#include "os_mtask.h"
+#include "kthread.h"
 #include "os_stdio.h"
 #include "os_stdio2.h"
 #include "os_bits.h"
@@ -19,25 +18,33 @@
 
 int key_shift = 0;
 
+/* character definitions */
+#define BOS_CHAR_TAB   '\t'
+#define BOS_CHAR_QUOTE '\''
+#define BOS_CHAR_MINUS '-'
+#define BOS_CHAR_EQUAL '='
+#define BOS_CHAR_SLASH '\\'
+#define BOS_CHAR_BACKSLASH '/'
+
 #define MAX_KEYTB_SIZE 0x54
 /* map for keyboard with 101 key */
 char keytable[MAX_KEYTB_SIZE] = {
       //0    1    2     3    4    5    6    7    8    9    A    B    C    D    E   F
-	0,   0,   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 0,   '\t',
+	0,   0,   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', BOS_CHAR_MINUS, BOS_CHAR_EQUAL, 0,   BOS_CHAR_TAB,
 	'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 0,   0,   'a', 's',
-	'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', 0,   0,   '\\', 'z', 'x', 'c', 'v',
-	'b', 'n', 'm', ',', '.', '/', 0,   '*', 0,   ' ', 0,   0,   0,   0,   0,   0,
-	0,   0,   0,   0,   0,   0,   0,   '7', '8', '9', '-', '4', '5', '6', '+', '1',
+	'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', BOS_CHAR_QUOTE, 0,   0,   BOS_CHAR_SLASH, 'z', 'x', 'c', 'v',
+	'b', 'n', 'm', ',', '.', BOS_CHAR_BACKSLASH, 0,   '*', 0,   ' ', 0,   0,   0,   0,   0,   0,
+	0,   0,   0,   0,   0,   0,   0,   '7', '8', '9', BOS_CHAR_MINUS, '4', '5', '6', '+', '1',
 	'2', '3', '0', '.'
 };
 
 char keytable_shift[MAX_KEYTB_SIZE] = {
       //0    1    2     3    4    5    6    7    8    9    A    B    C    D    E   F
-	0,   0,   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_', '+', 0,   '\t',
+	0,   0,   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_', '+', 0,   BOS_CHAR_TAB,
 	'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 0,   0,   'A', 'S',
 	'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', 0,   0,   '|', 'Z', 'X', 'C', 'V',
 	'B', 'N', 'M', '<', '>', '?', 0,   '*', 0,   ' ', 0,   0,   0,   0,   0,   0,
-	0,   0,   0,   0,   0,   0,   0,   '7', '8', '9', '-', '4', '5', '6', '=', '1',
+	0,   0,   0,   0,   0,   0,   0,   '7', '8', '9', BOS_CHAR_MINUS, '4', '5', '6', BOS_CHAR_EQUAL, '1',
 	'2', '3', '0', '.'
 };
 
@@ -98,12 +105,6 @@ void command_help(struct session *s)
 	s->y+=5;
 }
 
-extern int getpid_from_task(struct task *t);
-
-static int getmtime_by_pid(int pid)
-{
-	return g_mtime[pid];
-}
 
 void command_ps(struct session *s)
 {
@@ -197,9 +198,9 @@ void command_exec(struct session *s)
 		new_line(s);
 		printf("invalid command\n");
 		s->y++;
-	} 
+	}
 
-	// display prompt string bos$ 
+	// display prompt string bos$
 	s->x = 0;
 	show_prompt(s, STR_PROMPT);
 }
@@ -213,7 +214,7 @@ void bshell_init(struct session *s, int task_id)
 }
 
 /*
- shell within keyboard_io kernel thread
+ shell run by keyboard_io kernel thread
  */
 int kb_input_handling (struct session *s, int c)
 {
@@ -221,19 +222,19 @@ int kb_input_handling (struct session *s, int c)
 		c-= 256;
 		switch(c) {
 		case KEY_SHIFT_L: /* left shift on */
-			key_shift |= KB_SHIFT_L;	
+			key_shift |= KB_SHIFT_L;
 		break;
 		case KEY_SHIFT_R: /* right shift on */
-			key_shift |= KB_SHIFT_R;	
+			key_shift |= KB_SHIFT_R;
 		break;
 		case KEY_SHIFT_RL: /* left shift off */
-			key_shift &= ~KB_SHIFT_L;	
+			key_shift &= ~KB_SHIFT_L;
 		break;
 		case KEY_SHIFT_RR: /* right shift off */
-			key_shift &= ~KB_SHIFT_R;	
+			key_shift &= ~KB_SHIFT_R;
 		break;
 		case KEY_TAB:
-			putc('\t');
+			putc(BOS_CHAR_TAB);
 			s->x+=8;
 		break;
 		default:
@@ -258,7 +259,7 @@ int kb_input_handling (struct session *s, int c)
 						move_cursor(s->x,s->y);
 						printf(" ");
 						move_cursor(s->x,s->y);
-					} 
+					}
 				} else if (c == KEY_ENTER) {
 					s->buf[s->buflen] = 0;
 					command_exec(s);

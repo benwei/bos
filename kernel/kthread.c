@@ -12,22 +12,18 @@
 #include "os_fifo.h"
 #include "os_memory.h"
 #include "os_tss.h"
-#include "os_mtask.h"
+#include "kthread.h"
 #include "os_timer.h"
 #include "bshell.h"
 
 #define STR_PROMPT "bos$"
 
-#if 0
-static inline void show_prompt(struct session *s, const char *prompt)
-{
-	new_line(s);
-	puts(prompt);
-	s->x+=strlen(prompt) + 1;
-}
-#endif
-
 int g_mtime[MAX_TASK_NUM];
+
+int getmtime_by_pid(int pid)
+{
+	return g_mtime[pid];
+}
 
 int update_mtime_by_pid(int pid, int offset)
 {
@@ -98,5 +94,11 @@ void thread_kb_io(int task_id)
 			}
 		}
 	}
+}
+
+/* functions for app used */
+int getpid_from_task(struct task *t)
+{
+	return t->pid;
 }
 
