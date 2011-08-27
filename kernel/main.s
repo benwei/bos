@@ -104,8 +104,6 @@ bits 32
 	; memory handling
 	global io_load_eflags, io_store_eflags, load_cr0, store_cr0
 	global memtest_sub
-	; asm i/o port function for C
-	global inb, outb
 
 	; asm system function for c
 	global _syshalt, _nop
@@ -152,22 +150,6 @@ asm_stihlt:
 	hlt
 	ret
 
-inb:
-	mov  edx, [esp+4]
-	mov  eax, 0
-	;dw 0x00eb, 0x00eb
-	; in al, cl ; invalid combination of opcode and operands
-	; in al, dx ; correct
-	in al, dx
-	ret
-outb:
-	mov  edx, [esp+4]  ; io port
-	mov  eax, [esp+8]  ; data
-	;out  bl, al  ; invalid combination of opcode and operands 
-	;out  dx, al  ; invalid combination of opcode and operands 
-	;dw 0x00eb, 0x00eb
-	out  dx, al
-	ret
 _nop:
 	nop
 	ret

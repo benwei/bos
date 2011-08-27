@@ -6,6 +6,26 @@
 	global asm_inthdr21, asm_inthdr27, asm_inthdr2c
 	global asm_inthdr20
 
+	; asm i/o port function for C
+	global inb, outb
+
+inb:
+	mov  edx, [esp+4]
+	mov  eax, 0
+	;dw 0x00eb, 0x00eb
+	; in al, cl ; invalid combination of opcode and operands
+	; in al, dx ; correct
+	in al, dx
+	ret
+outb:
+	mov  edx, [esp+4]  ; io port
+	mov  eax, [esp+8]  ; data
+	;out  bl, al  ; invalid combination of opcode and operands 
+	;out  dx, al  ; invalid combination of opcode and operands 
+	;dw 0x00eb, 0x00eb
+	out  dx, al
+	ret
+
 ; void farjmp(int eip, int cs);
 ; use for task switch in c
 farjmp: 

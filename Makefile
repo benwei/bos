@@ -9,7 +9,7 @@ DD=dd
 include ./mk.defines
 
 # source files
-SHELL_SRC=kernel/init.c kernel/kthread.c $(shell ls lib/*.c) $(shell ls blibc/*.c) $(shell ls apps/*.c)
+SHELL_SRC=$(wildcard kernel/*.c) $(shell ls lib/*.c) $(shell ls blibc/*.c) $(shell ls apps/*.c)
 HW_DEP_ASM_SRC=kernel/main.s kernel/osfunc.s 
 
 # object files

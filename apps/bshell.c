@@ -11,6 +11,7 @@
 #include "os_bits.h"
 #include "bshell.h"
 #include "string.h"
+#include "os_pci.h"
 
 #ifndef BOS_VERSION
 #define BOS_VERSION "0.2"
@@ -101,8 +102,9 @@ void command_help(struct session *s)
 		"clear - clear screen\n"
 		"ps    - process status\n"
 		"uname - show system info\n"
-		"type  - dump memory info\n");
-	s->y+=5;
+		"type  - dump memory info\n"
+		"lspci - dump pci info\n");
+	s->y+=6;
 }
 
 
@@ -194,6 +196,8 @@ void command_exec(struct session *s)
 		command_uname(s);
 	} else if (strncmp(s->buf, "type ", 5) == 0 ) {
 		command_type(s);
+	} else if (strncmp(s->buf, "lspci", 5) == 0 ) {
+		lspci();
 	} else {
 		new_line(s);
 		printf("invalid command\n");

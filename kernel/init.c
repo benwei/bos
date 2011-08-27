@@ -14,6 +14,7 @@
 #include "os_tss.h"
 #include "os_mtask.h"
 #include "os_timer.h"
+#include "os_pci.h"
 #include "kthread.h"
 #include "bshell.h"
 
@@ -30,14 +31,16 @@ void setup_hw(void)
 	asm_cli();
 	puts("init gdt and idt\n");
 	init_gdtidt();
-	puts("init_pic\n");
+	puts("init pic\n");
 	init_pic();
 	outb(PIC0_IMR, 0xf8); /* allow PIT, PIC1 and keyboard  */
 	outb(PIC1_IMR, 0xef); /* allow mouse */
 	outb(0x20, 0x20);
 	asm_sti();
-	puts("init_pit\n");
+	puts("init pit\n");
 	init_pit();
+	puts("pci scan bus\n");
+	pci_init();
 	puts("setup hardware done\n");
 }
 
