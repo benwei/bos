@@ -60,11 +60,13 @@ pci_conf_readw(uint16_t bus, uint16_t slot,
 	return (unsigned short)((inl(pci_conf1_iodata) 
 		>> ((offset & 2) * 8)) & 0xffff);
 }
-
+typedef unsigned char uint8_t;
 struct pci_data_st {
 	uint16_t vendor;
 	uint16_t device;
 	uint16_t class_code;
+	uint8_t  progif;
+	uint8_t  revid;
 };
 
 typedef struct pci_data_st * pci_data_t;
@@ -80,12 +82,16 @@ static int pci_scan_bus()
 	pci_data_t dev = pci_data;
 
 	uint16_t vendor;
+	uint16_t tmp;
 	for ( ; slot < MAX_SLOT ; slot++) {
 		/* vendors that == 0xFFFF, it must be a non-existent device. */
 		if ((vendor = pci_conf_readw(bus,slot,0,0)) != 0xFFFF) {
 			dev->vendor = vendor;
 			dev->device = pci_conf_readw(bus,slot,0,2);
 			dev->class_code= pci_conf_readw(bus,slot,0,0xA);
+			tmp = pci_conf_readw(bus,slot,0,0x8);
+			dev->progif= tmp >> 8;
+			dev->revid = tmp & 0xFF;
 			dev_count++;
 			dev++;
 		}
@@ -114,9 +120,14 @@ int lspci(void)
 	int i = 0;
 	pci_data_t dev = pci_data;
 	for (;i < dev_count; i++) {
-		printf("\nvendor=0x%04x, device=0x%04x, class=%04x(%s)",
-			dev->vendor,dev->device,
-			dev->class_code, get_pci_class_string(dev->class_code >> 8));
+		printf("\nvendor:0x%04x, devid:0x%04x,class:%04x(%s)",
+		   dev->vendor,dev->device,
+		   dev->class_code, get_pci_class_string(dev->class_code >> 8)
+		   );
+		if (dev->revid > 0) {
+		   printf(",rev=%01x",
+		   dev->revid);
+		}
 		dev++;
 	}
 	return dev_count;
