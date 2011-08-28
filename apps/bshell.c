@@ -1,5 +1,5 @@
 /*
-* @file init.c
+* @file bshell.c
 * setup irq for keyboard and timer
 * initial the multi-tasking
 * startup sleep and keyboard_io kernel thread
@@ -9,15 +9,16 @@
 #include "os_stdio.h"
 #include "os_stdio2.h"
 #include "os_bits.h"
+#include "os_pci.h"
 #include "bshell.h"
 #include "string.h"
-#include "os_pci.h"
 
 #ifndef BOS_VERSION
 #define BOS_VERSION "0.2"
 #endif
 
 int key_shift = 0;
+int key_caps  = 0;
 
 /* character definitions */
 #define BOS_CHAR_TAB   '\t'
@@ -41,7 +42,7 @@ char keytable[MAX_KEYTB_SIZE] = {
 
 char keytable_shift[MAX_KEYTB_SIZE] = {
       //0    1    2     3    4    5    6    7    8    9    A    B    C    D    E   F
-	0,   0,   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_', '+', 0,   BOS_CHAR_TAB,
+	')', ')', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', 0,   BOS_CHAR_TAB,
 	'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 0,   0,   'A', 'S',
 	'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', 0,   0,   '|', 'Z', 'X', 'C', 'V',
 	'B', 'N', 'M', '<', '>', '?', 0,   '*', 0,   ' ', 0,   0,   0,   0,   0,   0,
@@ -70,9 +71,9 @@ static unsigned int memtotal;
 
 
 #define new_line(s) { \
-	move_cursor(s->x,s->y); \
+	move_cursor(s->cons->x,s->cons->y); \
 	clearline(); \
-	move_cursor(s->x,s->y); }
+	move_cursor(s->cons->x,s->cons->y); }
 
 int strlen(const char *s);
 
@@ -83,7 +84,7 @@ void command_free(struct session *s)
 	printf("Free/Totoal: %d/%d MB",
 		MEM_MB(freemem), 
 		MEM_MB(memtotal)); 
-	s->y++; /* mem line */
+	s->cons->y++; /* mem line */
 }
 
 
@@ -93,18 +94,18 @@ static inline void show_prompt(struct session *s, const char *prompt)
 {
 	new_line(s);
 	puts(prompt);
-	s->x+=strlen(prompt) + 1;
+	s->cons->x+=strlen(prompt) + 1;
 }
 
 void command_help(struct session *s)
 {
 	printf( "free  - memory info\n"
 		"clear - clear screen\n"
-		"ps    - process status\n"
-		"uname - show system info\n"
+		"ps    - process status\n");
+	printf( "uname - show system info\n"
 		"type  - dump memory info\n"
 		"lspci - dump pci info\n");
-	s->y+=6;
+	s->cons->y+=6;
 }
 
 
@@ -118,7 +119,7 @@ void command_ps(struct session *s)
 			int pid = getpid_from_task(t);
 			new_line(s);
 			printf("%d %s - running %d\n", pid, t->processname, getmtime_by_pid(pid));
-			s->y++;
+			s->cons->y++;
 		}
 	}
 }
@@ -126,14 +127,14 @@ void command_ps(struct session *s)
 void command_clear(struct session *s)
 {
 	clrscr();
-	s->y=0;
+	s->cons->y=0;
 }
 
 void command_uname(struct session *s)
 {
 	new_line(s);
 	printf("BenOS "BOS_VERSION"\n");
-	s->y++; 
+	s->cons->y++; 
 }
 
 void hexdump(struct session *s, const char *addr , int len)
@@ -168,19 +169,19 @@ void command_type(struct session *s)
 	new_line(s);
 	printf("type command %x\n", tadr);
 	
-	s->y++; 
+	s->cons->y++; 
 	for  (; i < 16; i++) {
 		new_line(s);
 		hexdump(s, p, 16);
 		p+=16;
-		s->y++;
+		s->cons->y++;
 	}
 }
 
 void command_exec(struct session *s)
 {
-	s->x=0;
-	s->y++;
+	s->cons->x=0;
+	s->cons->y++;
 	if (s->buflen == 0) {
 		; /* new line */
 	} else if (strcmp(s->buf, "help") == 0 ) {
@@ -197,97 +198,118 @@ void command_exec(struct session *s)
 	} else if (strncmp(s->buf, "type ", 5) == 0 ) {
 		command_type(s);
 	} else if (strncmp(s->buf, "lspci", 5) == 0 ) {
-		lspci();
+		int r = lspci();
+		s->cons->y+=r;
 	} else {
 		new_line(s);
 		printf("invalid command\n");
-		s->y++;
+		s->cons->y++;
 	}
 
 	// display prompt string bos$
-	s->x = 0;
+	s->cons->x = 0;
 	show_prompt(s, STR_PROMPT);
 }
 
 void bshell_init(struct session *s, int task_id)
 {
-	move_cursor(s->x,s->y);
+	move_cursor(s->cons->x,s->cons->y);
 	printf("%s started(pid=%d)\n", "bshell", (void *) task_id);
-	s->y++;
+	s->cons->y++;
 	show_prompt(s, STR_PROMPT);
 }
 
+#define KB_OFFSET 256
+#define KB_UPBOUND 512
+#define KEY_CTRL_R  0x1d
+#define KEY_CTRL_L  0x1f
+#define KB_CTRL_R   1
+#define KB_CTRL_L   2
+int key_ctrl = 0;
+
+static void printf_scancode(struct session *s, int c)
+{
+	move_cursor(s->cons->x,s->cons->y);
+	clearline();
+	move_cursor(s->cons->x,s->cons->y);
+	printf("code:%x\n", (void *) c, NULL);
+	s->cons->x= 0;
+	s->cons->y++;
+}
 /*
  shell run by keyboard_io kernel thread
  */
 int kb_input_handling (struct session *s, int c)
 {
-	if (256 <= c && c <=511) {
-		c-= 256;
-		switch(c) {
-		case KEY_SHIFT_L: /* left shift on */
-			key_shift |= KB_SHIFT_L;
-		break;
-		case KEY_SHIFT_R: /* right shift on */
-			key_shift |= KB_SHIFT_R;
-		break;
-		case KEY_SHIFT_RL: /* left shift off */
-			key_shift &= ~KB_SHIFT_L;
-		break;
-		case KEY_SHIFT_RR: /* right shift off */
-			key_shift &= ~KB_SHIFT_R;
-		break;
-		case KEY_TAB:
-			putc(BOS_CHAR_TAB);
-			s->x+=8;
-		break;
-		default:
-			if (c < MAX_KEYTB_SIZE) {
-				int ch;
-				if ((key_shift & KB_SHIFT_L)
-				     || (key_shift & KB_SHIFT_R))
-					ch = keytable_shift[c];
-				else
-					ch = keytable[c];
+	if (!(KB_OFFSET <= c && c <KB_UPBOUND))
+		return 0;
+	
+	c-= KB_OFFSET;
+	switch(c) {
+	case 0xE1: /* skip temp */
+	break;
+	case KEY_SHIFT_L: /* left shift on */
+		key_shift |= KB_SHIFT_L;
+	break;
+	case KEY_SHIFT_R: /* right shift on */
+		key_shift |= KB_SHIFT_R;
+	break;
+	case KEY_SHIFT_RL: /* left shift off */
+		key_shift &= ~KB_SHIFT_L;
+	break;
+	case KEY_SHIFT_RR: /* right shift off */
+		key_shift &= ~KB_SHIFT_R;
+	break;
+	case KEY_CTRL_R:
+		key_ctrl &= ~KB_CTRL_R;
+	break;
+	case KEY_TAB:
+		putc(BOS_CHAR_TAB);
+		s->cons->x+=8;
+	break;
+	default:
+		if (c < MAX_KEYTB_SIZE) {
+			int ch = 0;
+			if ((key_shift & KB_SHIFT_L)
+			     || (key_shift & KB_SHIFT_R))
+				ch = keytable_shift[c];
+			else
+				ch = keytable[c];
 
-				if (ch != 0) {
-					move_cursor(s->x,s->y);
-					putc(ch); s->x++;
-					if (s->buflen < MAX_CMD_BUF_SIZE - 1) {
-						s->buf[s->buflen++] = ch;
-					}
-				} else if (c == KEY_BS) { /* process backspace key */
-					if (s->buflen > 0) {
-						s->buf[--s->buflen] = '\0';
-						s->x--;
-						move_cursor(s->x,s->y);
-						printf(" ");
-						move_cursor(s->x,s->y);
-					}
-				} else if (c == KEY_ENTER) {
-					s->buf[s->buflen] = 0;
-					command_exec(s);
-					s->buflen = 0;
-					s->buf[0] = 0;
-				} else {
-					move_cursor(s->x,s->y);
-					clearline();
-					move_cursor(s->x,s->y);
-					printf("code:%x\n", (void *) c, NULL);
-					s->x= 0;
-					s->y++;
+			if (ch != 0) {
+				move_cursor(s->cons->x,s->cons->y);
+				putc(ch); s->cons->x++;
+				if (s->buflen < MAX_CMD_BUF_SIZE - 1) {
+					s->buf[s->buflen++] = ch;
 				}
+			} else if (c == KEY_BS) { /* process backspace key */
+				if (s->buflen > 0) {
+					s->buf[--s->buflen] = '\0';
+					s->cons->x--;
+					move_cursor(s->cons->x,s->cons->y);
+					printf(" ");
+					move_cursor(s->cons->x,s->cons->y);
+				}
+			} else if (c == KEY_ENTER) {
+				s->buf[s->buflen] = 0;
+				command_exec(s);
+				s->buflen = 0;
+				s->buf[0] = 0;
+			} else {
+				printf_scancode(s, c);
 			}
+		} else {
+			// printf_scancode(s, c);
 		}
 	}
 
-	if (s->x > 79) {
-		s->x = 0;
-		s->y++;
+	if (s->cons->x > 79) {
+		s->cons->x = 0;
+		s->cons->y++;
 	}
 
-	if (s->y >= 24) {
-		s->y = 0;
+	if (s->cons->y >= 24) {
+		s->cons->y = 0;
 	}
 	return 0;
 }

@@ -1,5 +1,5 @@
 /*
-* @file init.c
+* @file kthread.c
 * sleep and keyboard_io kernel thread
 * bshell is running at keyboard_io kernel thread
 */
@@ -14,6 +14,7 @@
 #include "os_tss.h"
 #include "kthread.h"
 #include "os_timer.h"
+#include "string.h"
 #include "bshell.h"
 
 #define STR_PROMPT "bos$"
@@ -34,17 +35,20 @@ int update_mtime_by_pid(int pid, int offset)
 void thread_lazyman_sleep(int task_id)
 {
 	struct FIFO32 fifo;
-	struct TIMER *tsw, *timer_1s;
+	struct TIMER *tsw;
 	int i, fifobuf[128];
-	struct session sc = { 0, 5};
+	console kb_cons;
+	struct session sc;
+	memset(&kb_cons, 0, sizeof(console));
+	memset(&sc, 0, sizeof(struct session));
+	sc.cons = &kb_cons;
+	kb_cons.x = 0; kb_cons.y = 5;
+	move_cursor(kb_cons.x,kb_cons.y);
+
 	fifo32_init(&fifo, 128, fifobuf);
 	tsw = timer_alloc();
 	timer_init(tsw, &fifo, 1);
 	timer_settime(tsw, 2);
-	timer_1s = timer_alloc();
-	timer_init(timer_1s, &fifo, 2);
-	timer_settime(timer_1s, 100);
-	move_cursor(sc.x,sc.y);
 	printf("%s started(pid=%d)\n", (void *) __FUNCTION__, (void *) task_id);
 	for (;;) {
 		update_mtime_by_pid(task_id, 1);
@@ -66,16 +70,19 @@ void thread_lazyman_sleep(int task_id)
 void thread_kb_io(int task_id)
 {
 	struct FIFO32 fifo;
-	struct TIMER *tsw, *timer_1s;
+	struct TIMER *tsw;
 	int i, fifobuf[128];
-	struct session sc = { 0, 6};
+	console kb_cons;
+	memset(&kb_cons, 0, sizeof(console));
+	struct session sc;
+	memset(&sc, 0, sizeof(struct session));
+	sc.cons = &kb_cons;
+	kb_cons.x = 0; kb_cons.y = 6;
+
 	fifo32_init(&fifo, 128, fifobuf);
 	tsw = timer_alloc();
 	timer_init(tsw, &fifo, 1);
 	timer_settime(tsw, 2);
-	timer_1s = timer_alloc();
-	timer_init(timer_1s, &fifo, 2);
-	timer_settime(timer_1s, 100);
 	bshell_init(&sc, task_id);
 	kb_change_fifo(&fifo);
 	for (;;) {

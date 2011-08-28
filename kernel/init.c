@@ -111,9 +111,6 @@ void _benmain(void)
 	task_create((int) &thread_kb_io, memman, "bshell");
 	task_create((int) &thread_lazyman_sleep, memman, "sleep2");
 
-	struct session sc = {0, 0};
-
-	puts("boot options:");
 	for (;;) {
 		asm_cli();
 		if (fifo32_status(&fifo) == 0) {
@@ -135,7 +132,7 @@ void _benmain(void)
 				}
 				timer_settime(timer3, 50);
 			} else {
-				kb_input_handling(&sc, c);
+				puts("disabled boot options.\n");
 			}
 		}
 	}
