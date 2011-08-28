@@ -12,6 +12,8 @@
 #include "os_pci.h"
 #include "bshell.h"
 #include "string.h"
+#include "screen.h"
+#include "keymap.h"
 
 #ifndef BOS_VERSION
 #define BOS_VERSION "0.2"
@@ -19,6 +21,7 @@
 
 int key_shift = 0;
 int key_caps  = 0;
+
 
 /* character definitions */
 #define BOS_CHAR_TAB   '\t'
@@ -53,17 +56,6 @@ char keytable_shift[MAX_KEYTB_SIZE] = {
 static struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
 static unsigned int memtotal;
 
-#define KEY_ENTER 0x1C
-#define KEY_BS    0x0e /* Back Space */
-#define KB_SHIFT_L 1
-#define KB_SHIFT_R 2
-#define KB_RELEASED 0x80
-
-#define KEY_SHIFT_L 0x2a
-#define KEY_SHIFT_R 0x36
-#define KEY_TAB     0x0f
-#define KEY_SHIFT_RL KEY_SHIFT_L | KB_RELEASED 
-#define KEY_SHIFT_RR KEY_SHIFT_R | KB_RELEASED 
 
 /* console definitions */
 #define MEM_MB(x) ((x)/1024/1024)
@@ -82,8 +74,8 @@ void command_free(struct session *s)
 	int freemem = memman_total(memman);
 	new_line(s);
 	printf("Free/Totoal: %d/%d MB",
-		MEM_MB(freemem), 
-		MEM_MB(memtotal)); 
+		MEM_MB(freemem),
+		MEM_MB(memtotal));
 	s->cons->y++; /* mem line */
 }
 
@@ -95,6 +87,7 @@ static inline void show_prompt(struct session *s, const char *prompt)
 	new_line(s);
 	puts(prompt);
 	s->cons->x+=strlen(prompt) + 1;
+	screen_setcursor(s->cons->x, s->cons->y);
 }
 
 void command_help(struct session *s)
@@ -135,7 +128,7 @@ void command_uname(struct session *s)
 {
 	new_line(s);
 	printf("BenOS "BOS_VERSION"\n");
-	s->cons->y++; 
+	s->cons->y++;
 }
 
 void hexdump(struct session *s, const char *addr , int len)
@@ -185,6 +178,13 @@ void command_lspci(struct session *s)
 	s->cons->y+=r;
 }
 
+
+void command_scroll(struct session *s) {
+	int lineup = 1;
+	int pos = MAX_COLS * lineup;
+	screen_scrollto(pos);
+}
+
 typedef struct st_cmdtable {
 	const char *cmd; /* name of command */
 	int len;  /* length of command */
@@ -199,6 +199,7 @@ static cmdtable command_table[] = {
 	{"uname", 5, command_uname},
 	{"type ", 5, command_type},
 	{"lspci", 5, command_lspci},
+	{"scroll", 6, command_scroll},
 	{"", 0, NULL}
 };
 
@@ -263,6 +264,46 @@ static void printf_scancode(struct session *s, int c)
 	s->cons->x= 0;
 	s->cons->y++;
 }
+
+/* key's scan code with e0 */
+#define KEY_UP    0x48
+#define KEY_LEFT  0x4B
+#define KEY_DOWN  0x50
+#define KEY_RIGHT 0x4D
+
+#define KEY_HOME  0x47
+#define KEY_PGUP  0x49
+#define KEY_DEL   0x53
+#define KEY_END   0x4F
+#define KEY_PGDN  0x51
+
+/* handling the scan code with e0 */
+void control_key_handling(struct session *s, int c)
+{
+	switch(c) {
+	case KEY_UP:
+		s->buflen = s->prevbuflen;
+		strcpy(s->buf, s->prevbuf);
+		s->buf[s->buflen] = 0;
+		printf(" %s", s->buf);
+	break;
+	case KEY_LEFT:
+		printf("KEY_LEFT\n");
+		s->cons->y++;
+	break;
+	case KEY_RIGHT:
+		printf("KEY_RIGHT\n");
+		s->cons->y++;
+	break;
+	case KEY_DOWN:
+		printf("KEY_DOWN\n");
+		s->cons->y++;
+	break;
+	}
+}
+
+static int sc_e0 = 0;
+static int sc_mk = 0;
 /*
  shell run by keyboard_io kernel thread
  */
@@ -270,7 +311,7 @@ int kb_input_handling (struct session *s, int c)
 {
 	if (!(KB_OFFSET <= c && c <KB_UPBOUND))
 		return 0;
-	
+
 	c-= KB_OFFSET;
 	switch(c) {
 	case 0xE1: /* skip temp */
@@ -290,18 +331,37 @@ int kb_input_handling (struct session *s, int c)
 	case KEY_CTRL_R:
 		key_ctrl &= ~KB_CTRL_R;
 	break;
+	case KEY_CAPSLOCK:
+		key_caps = ~key_caps;
+	break;
 	case KEY_TAB:
 		putc(BOS_CHAR_TAB);
 		s->cons->x+=8;
 	break;
+	case 0xE0:
+		sc_e0 = 1;
+	break;
 	default:
-		if (c < MAX_KEYTB_SIZE) {
+		sc_mk = !IS_BREAK_CODE(c);
+		if (sc_e0) {
+			if (sc_mk)
+				control_key_handling(s, c);
+			sc_e0 = 0;
+		} else if (c < MAX_KEYTB_SIZE) {
 			int ch = 0;
 			if ((key_shift & KB_SHIFT_L)
 			     || (key_shift & KB_SHIFT_R))
 				ch = keytable_shift[c];
 			else
 				ch = keytable[c];
+
+			if (key_caps) {
+				if (ch >= 'a' || ch <='z') {
+					ch = ch -'a' + 'A';
+				} else if (ch >= 'A' || ch <='Z') {
+					ch = ch -'A' + 'a';
+				}
+			}
 
 			if (ch != 0) {
 				move_cursor(s->cons->x,s->cons->y);
@@ -313,12 +373,14 @@ int kb_input_handling (struct session *s, int c)
 				if (s->buflen > 0) {
 					s->buf[--s->buflen] = '\0';
 					s->cons->x--;
-					move_cursor(s->cons->x,s->cons->y);
-					printf(" ");
-					move_cursor(s->cons->x,s->cons->y);
+					char *scr = (char *)0xB8000;
+					*(scr+(s->cons->y*80+s->cons->x)*2) = ' ';
+					screen_setcursor(s->cons->x,s->cons->y);
 				}
 			} else if (c == KEY_ENTER) {
 				s->buf[s->buflen] = 0;
+				s->prevbuflen = s->buflen;
+				strcpy(s->prevbuf, s->buf);
 				command_exec(s);
 				s->buflen = 0;
 				s->buf[0] = 0;

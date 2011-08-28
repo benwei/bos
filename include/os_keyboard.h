@@ -25,7 +25,6 @@ KEY_q=0x10,
 KEY_SHIFT=0x2A, /* 0x2A */
 };
 
-
 /* change keyboard fifo*/
 void kb_change_fifo(struct FIFO32 *fifo);
 

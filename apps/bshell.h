@@ -16,6 +16,8 @@ typedef struct console_st {
 struct session {
 	int buflen;
 	char buf[MAX_CMD_BUF_SIZE];
+	int prevbuflen;
+	char prevbuf[MAX_CMD_BUF_SIZE];
 	unsigned int *pnext; /* next for handling of input buffer */
 	unsigned int *ptail; /* proceed location of input buffer */
 	console *cons;
