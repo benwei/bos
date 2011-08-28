@@ -14,9 +14,9 @@ char * strpbrk(const char * cs,const char * ct);
 unsigned long 
 strtoul(const char *str, char **endptr, int requestedbase);
 
-int strcmp(char *s1, char *s2);
+int strcmp(const char *s1, const char *s2);
 
-int strncmp(char *s1, char *s2, int n);
+int strncmp(const char *s1, const char *s2, int n);
 
 void *memcpy(void *dest, const void *src, int cnt);
 

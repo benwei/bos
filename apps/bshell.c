@@ -99,6 +99,7 @@ static inline void show_prompt(struct session *s, const char *prompt)
 
 void command_help(struct session *s)
 {
+	new_line(s);
 	printf( "free  - memory info\n"
 		"clear - clear screen\n"
 		"ps    - process status\n");
@@ -168,8 +169,8 @@ void command_type(struct session *s)
 
 	new_line(s);
 	printf("type command %x\n", tadr);
-	
-	s->cons->y++; 
+
+	s->cons->y++;
 	for  (; i < 16; i++) {
 		new_line(s);
 		hexdump(s, p, 16);
@@ -178,28 +179,54 @@ void command_type(struct session *s)
 	}
 }
 
+void command_lspci(struct session *s)
+{
+	int r = lspci();
+	s->cons->y+=r;
+}
+
+typedef struct st_cmdtable {
+	const char *cmd; /* name of command */
+	int len;  /* length of command */
+	void (*pfunc)(struct session *s);
+} cmdtable;
+
+static cmdtable command_table[] = {
+	{"clear", 5, command_clear},
+	{"free", 4, command_free},
+	{"help", 4, command_help},
+	{"ps", 2, command_ps},
+	{"uname", 5, command_uname},
+	{"type ", 5, command_type},
+	{"lspci", 5, command_lspci},
+	{"", 0, NULL}
+};
+
+static cmdtable *get_commandhandler(const char *buf)
+{
+	const char *p = buf;
+	int cmdlen = 0;
+	while (*p != 0) p++ ;
+	cmdlen = p - buf;
+	cmdtable *pc = command_table;
+	while (pc->len > 0) {
+		if (cmdlen >= pc->len && strncmp(buf, pc->cmd, pc->len) == 0) {
+			return pc;
+		}
+		pc++;
+	}
+	return NULL;
+}
+
 void command_exec(struct session *s)
 {
+	cmdtable *c = NULL;
 	s->cons->x=0;
 	s->cons->y++;
 	if (s->buflen == 0) {
 		; /* new line */
-	} else if (strcmp(s->buf, "help") == 0 ) {
-		new_line(s);
-		command_help(s);
-	} else if (strcmp(s->buf, "ps") == 0 ) {
-		command_ps(s);
-	} else if (strcmp(s->buf, "clear") == 0 ) {
-		command_clear(s);
-	} else if (strcmp(s->buf, "free") == 0 ) {
-		command_free(s);
-	} else if (strcmp(s->buf, "uname") == 0 ) {
-		command_uname(s);
-	} else if (strncmp(s->buf, "type ", 5) == 0 ) {
-		command_type(s);
-	} else if (strncmp(s->buf, "lspci", 5) == 0 ) {
-		int r = lspci();
-		s->cons->y+=r;
+	} else if ((c = get_commandhandler(s->buf)) != NULL) {
+		c->pfunc(s);
 	} else {
 		new_line(s);
 		printf("invalid command\n");

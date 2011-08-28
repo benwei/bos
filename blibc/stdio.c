@@ -53,24 +53,6 @@ void *memset(void *dest, int c, unsigned int size)
 	return dest;
 }
 
-int strncmp(char *s1, char *s2, int n)
-{
-	while (*s1 != '\0' && *s2 != '\0' && *s1 == *s2 && (--n)>0) {
-		s1++;
-		s2++;
-	}
-	return (*(unsigned char *) s1) - (*(unsigned char *) s2);
-}
-
-int strcmp(char *s1, char *s2)
-{
-	while (*s1 != '\0' && *s2 != '\0' && *s1 == *s2) {
-		s1++;
-		s2++;
-	}
-	return (*(unsigned char *) s1) - (*(unsigned char *) s2);
-}
-
 
 static const char *fd_msg[] = {"N/A", "360KB", "1.2MB", "720KB", "1.44MB", 0};
 const char *get_fd_msg(unsigned char c)
