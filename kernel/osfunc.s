@@ -8,24 +8,32 @@
 
 	; asm i/o port function for C
 	global inb, outb
+	global _inl, _outl
 
 inb:
 	mov  edx, [esp+4]
 	mov  eax, 0
-	;dw 0x00eb, 0x00eb
-	; in al, cl ; invalid combination of opcode and operands
-	; in al, dx ; correct
 	in al, dx
 	ret
+
 outb:
 	mov  edx, [esp+4]  ; io port
 	mov  eax, [esp+8]  ; data
-	;out  bl, al  ; invalid combination of opcode and operands 
-	;out  dx, al  ; invalid combination of opcode and operands 
-	;dw 0x00eb, 0x00eb
 	out  dx, al
 	ret
 
+;uint32_t _intl(int port)
+_inl:
+	mov  edx, [esp+4]
+	mov  eax, 0
+	in eax, dx
+	ret
+;void _outl(int port, uint32_t data)
+_outl:
+	mov  edx, [esp+4]  ; io port
+	mov  eax, [esp+8]  ; data
+	out  dx, eax
+	ret
 ; void farjmp(int eip, int cs);
 ; use for task switch in c
 farjmp: 

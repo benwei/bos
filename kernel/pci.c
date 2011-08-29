@@ -2,6 +2,7 @@
 typedef unsigned int uint32_t;
 typedef unsigned short uint16_t;
 
+#if USE_INLINE_ASM
 static __inline uint32_t inl(int port)
 {
 	uint32_t data;
@@ -13,6 +14,12 @@ static __inline void outl(int port, uint32_t data)
 {
 	__asm __volatile("outl %0,%w1" : : "a" (data), "d" (port));
 }
+#else
+extern uint32_t _inl(int port);
+extern void _outl(int port, uint32_t data);
+#define inl(port) _inl(port)
+#define outl(port, data) _outl(port, data)
+#endif
 /* pci definitions */
 static uint32_t pci_conf1_ioaddr = 0x0CF8;
 static uint32_t pci_conf1_iodata = 0x0CFC;
@@ -60,6 +67,7 @@ pci_conf_readw(uint16_t bus, uint16_t slot,
 	return (unsigned short)((inl(pci_conf1_iodata) 
 		>> ((offset & 2) * 8)) & 0xffff);
 }
+
 typedef unsigned char uint8_t;
 struct pci_data_st {
 	uint16_t vendor;
