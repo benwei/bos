@@ -19,9 +19,8 @@
 #define BOS_VERSION "0.2"
 #endif
 
-int key_shift = 0;
-int key_caps  = 0;
-
+static int key_shift = 0;
+static int key_caps  = 0;
 
 /* character definitions */
 #define BOS_CHAR_TAB   '\t'
@@ -54,7 +53,7 @@ char keytable_shift[MAX_KEYTB_SIZE] = {
 };
 
 static struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
-static unsigned int memtotal;
+extern unsigned int memtotal;
 
 
 /* console definitions */
@@ -73,12 +72,11 @@ void command_free(struct session *s)
 {
 	int freemem = memman_total(memman);
 	new_line(s);
-	printf("Free/Totoal: %d/%d MB",
+	printf("Free/Totoal: %d/%d MB\n",
 		MEM_MB(freemem),
 		MEM_MB(memtotal));
-	s->cons->y++; /* mem line */
+	s->cons->y+=2; /* mem line */
 }
-
 
 #define STR_PROMPT "bos$"
 
@@ -363,13 +361,7 @@ int kb_input_handling (struct session *s, int c)
 				}
 			}
 
-			if (ch != 0) {
-				move_cursor(s->cons->x,s->cons->y);
-				putc(ch); s->cons->x++;
-				if (s->buflen < MAX_CMD_BUF_SIZE - 1) {
-					s->buf[s->buflen++] = ch;
-				}
-			} else if (c == KEY_BS) { /* process backspace key */
+			if (c == KEY_BS) { /* process backspace key */
 				if (s->buflen > 0) {
 					s->buf[--s->buflen] = '\0';
 					s->cons->x--;
@@ -384,6 +376,12 @@ int kb_input_handling (struct session *s, int c)
 				command_exec(s);
 				s->buflen = 0;
 				s->buf[0] = 0;
+			} else if (ch != 0) {
+				move_cursor(s->cons->x,s->cons->y);
+				putc(ch); s->cons->x++;
+				if (s->buflen < MAX_CMD_BUF_SIZE - 1) {
+					s->buf[s->buflen++] = ch;
+				}
 			} else {
 				printf_scancode(s, c);
 			}

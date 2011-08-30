@@ -45,7 +45,7 @@ void setup_hw(void)
 }
 
 static struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
-static unsigned int memtotal;
+unsigned int memtotal;
 
 void check_memory()
 {

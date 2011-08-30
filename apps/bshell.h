@@ -24,9 +24,6 @@ struct session {
 };
 
 extern int kb_input_handling (struct session *s, int c);
-extern char keytable[];
-extern char keytable_shift[];
-extern int key_shift;
 extern int g_mtime[];
 
 void bshell_init(struct session *s, int taskid);
