@@ -14,6 +14,7 @@
 #include "string.h"
 #include "screen.h"
 #include "keymap.h"
+#include "memory.h"
 
 #ifndef BOS_VERSION
 #define BOS_VERSION "0.2"
@@ -52,30 +53,40 @@ char keytable_shift[MAX_KEYTB_SIZE] = {
 	'2', '3', '0', '.'
 };
 
-static struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
-extern unsigned int memtotal;
 
-
-/* console definitions */
 #define MEM_MB(x) ((x)/1024/1024)
-
-
-
 #define new_line(s) { \
 	move_cursor(s->cons->x,s->cons->y); \
 	clearline(); \
 	move_cursor(s->cons->x,s->cons->y); }
 
-int strlen(const char *s);
+
+void dump_e820(struct session *s)
+{
+	int i;
+	const char *msg;
+	e820_t *e = e820_info;
+	for (i = 0; i < e820_smap_num; i++, e++) {
+		if (e->type == E820_ADDR_RANGE){
+			msg = "Free";
+		} else
+			msg = "Reserved";
+		printf(" %0x%0x | %0x%0x | %s(%d)\n",
+			 e->addr_high, e->addr_low,
+			 e->len_high, e->len_low,
+			 msg, e->type);
+	}
+	s->cons->y+= i;
+}
 
 void command_free(struct session *s)
 {
-	int freemem = memman_total(memman);
+	int freemem = memman_total((struct MEMMAN *) MEMMAN_ADDR);
 	new_line(s);
-	printf("Free/Totoal: %d/%d MB\n",
-		MEM_MB(freemem),
-		MEM_MB(memtotal));
-	s->cons->y+=2; /* mem line */
+	dump_e820(s);
+	printf("Free/Total: %d/%d MB\n",
+		MEM_MB(freemem), MEM_MB(mem_upbound_size));
+	s->cons->y++;
 }
 
 #define STR_PROMPT "bos$"

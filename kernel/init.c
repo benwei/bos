@@ -17,6 +17,7 @@
 #include "os_pci.h"
 #include "kthread.h"
 #include "bshell.h"
+#include "memory.h"
 
 /* pointer for global descriptor table */
 struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) ADR_GDT;
@@ -45,13 +46,17 @@ void setup_hw(void)
 }
 
 static struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
-unsigned int memtotal;
 
 void check_memory()
 {
-	memtotal = memtest(0x00400000, 0xbfffffff);
+	calc_e820();
+	/* if calc_e820 can not work,
+	   we may use dirty way to test memory size.*/
+#if HAVE_MEMTEST
+	mem_upbound_size = memtest(0x00400000, 0xbfffffff);
+#endif
 	memman_init(memman);
-	memman_free(memman,0x00400000, memtotal - 0x00400000);
+	memman_free(memman,0x00400000, mem_upbound_size - 0x00400000);
 }
 
 /* move_cursor */

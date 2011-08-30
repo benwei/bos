@@ -81,6 +81,24 @@ _start:
 
 EnterStage3:
 
+; load e820 info
+	mov ebx, 0
+	mov di, e820_data
+.loop:
+	mov eax, 0xE820
+	mov ecx, 20
+	mov edx,0x0534D4150 ; SMAP
+	int 15h
+	jc e820_chk_failed
+	add di, 20
+	inc DWORD [e820_num]
+	cmp ebx, 0
+	jne .loop
+	jmp e820_chk_ok
+e820_chk_failed:
+	mov DWORD [e820_num], 0
+e820_chk_ok:
+
 	cli				; clear interrupts
 	mov	eax, cr0		; set bit 0 in cr0--enter pmode
 	or	eax, 1
@@ -111,6 +129,8 @@ bits 32
 	; asm std out function for c
 	global _cputs, _cputchar, _movcursor
 	global _clrscr
+	; asm for memory info
+	global get_e820_data, get_e820_num
 
 	; asm for gcc stack chk
 	global  __stack_chk_fail 
@@ -246,7 +266,13 @@ mts_fin:
 		pop	edi
 		ret
 
+get_e820_num:	; int get_e820_num(void);
+	mov eax, DWORD [e820_num]
+	ret
+get_e820_data:	; const unsigned char *get_e820_data(void);
+	mov eax, e820_data
+	ret
 
 msg_stack_chk_fail db  "__stack_chk_fail", 0xa, 0
-msg_irq21 db  "asm irq21", 0xa, 0
-
+e820_num  dd  0
+e820_data times 256 db 0

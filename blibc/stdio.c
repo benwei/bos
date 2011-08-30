@@ -4,30 +4,6 @@
 #include "os_bits.h"
 #include "string.h"
 
-#define hex(l) ((l < 10) ? (0x30+l) : (0x41+l-10))
-
-/************************************************************
-* api for number to string
-************************************************************/
-
-static inline void
-hexc(char c, char *s, int i)  {
-	char l = c & 0x000f;
-	s[i] = hex(l);
-	l = (c & 0x00f0) >> 4;
-	s[i-1] = hex(l);
-}
-
-void itohex(int c, char *s)
-{
-	int i;
-	char *p = (char *) &c;
-	for (i = sizeof(c)*2 - 1; i > 0; i-=2) {
-		hexc(*p, s, i);
-		p++;
-	}
-}
-
 /************************************************************
 * api for string processing
 ************************************************************/

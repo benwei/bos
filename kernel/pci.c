@@ -1,6 +1,5 @@
 #include "os_stdio2.h"
-typedef unsigned int uint32_t;
-typedef unsigned short uint16_t;
+#include "types.h"
 
 #if USE_INLINE_ASM
 static __inline uint32_t inl(int port)
@@ -133,7 +132,7 @@ int lspci(void)
 		   dev->class_code, get_pci_class_string(dev->class_code >> 8)
 		   );
 		if (dev->revid > 0) {
-		   printf(",rev=%01x",
+		   printf(",rev=%x",
 		   dev->revid);
 		}
 		dev++;

@@ -31,3 +31,30 @@ char *itoa(int l, char *tol, int size)
 	}
 	return tol + count;/* num only without sign and prefix '0' */
 }
+
+
+#define hex(l) ((l < 10) ? (0x30+l) : (0x41+l-10))
+static inline void
+hexc(char c, char *s, int i)  {
+	char l = c & 0x000f;
+	s[i] = hex(l);
+	l = (c & 0x00f0) >> 4;
+	s[i-1] = hex(l);
+}
+
+const char *itohex(int c, char *s, int size)
+{
+	int i;
+	char *p = (char *) &c;
+	for (i = sizeof(c)*2 - 1; i > 0; i-=2) {
+		hexc(*p, s, i);
+		p++;
+	}
+
+	s[size-1] = 0;
+
+	p = s;
+	while (*p != 0 && *p == '0') p++;
+	return p;
+}
+

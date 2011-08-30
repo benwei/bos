@@ -53,9 +53,9 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 		{
 			// buf[8] without null terminated char
 			int b = va_arg(args, int);
-			itohex(b, snum);
-			snum[8] = 0;
-			t=snum;
+			t = itohex(b, snum, 9);
+			if (*format == '0')
+				t = snum;
 			MCPY(d, t);
 			break;
 		}
