@@ -44,7 +44,7 @@ pci_conf_apply_addr(uint16_t bus, uint16_t slot,
 	/* create configuration address as per Figure 1 */
 	addr = (unsigned long)((lbus << 16) | (lslot << 11) |
 			  (lfunc << 8) | (offset & 0xfc) | 1<<31);
- 
+
 	/* write out the address */
 	outl(pci_conf1_ioaddr, addr);
 }
@@ -63,10 +63,19 @@ pci_conf_readw(uint16_t bus, uint16_t slot,
 {
 	pci_conf_apply_addr(bus, func, slot, offset);
 	/* read word in the data */
-	return (unsigned short)((inl(pci_conf1_iodata) 
+	return (unsigned short)((inl(pci_conf1_iodata)
 		>> ((offset & 2) * 8)) & 0xffff);
 }
 
+void
+pci_conf_write(uint16_t bus, uint16_t slot,
+	       uint16_t func, uint16_t offset,
+	       uint32_t data) {
+	pci_conf_apply_addr(bus, func, slot, offset);
+	outl(pci_conf1_iodata, data);
+}
+
+#define MAX_BASE_ADDR 6
 typedef unsigned char uint8_t;
 struct pci_data_st {
 	uint16_t vendor;
@@ -74,14 +83,29 @@ struct pci_data_st {
 	uint16_t class_code;
 	uint8_t  progif;
 	uint8_t  revid;
+	uint8_t  hdrtype;
+
+	uint32_t addr_base[MAX_BASE_ADDR];
+	uint32_t addr_size[MAX_BASE_ADDR];
+	uint8_t  irq_line;
 };
 
-typedef struct pci_data_st * pci_data_t;
+typedef struct pci_data_st *pci_data_t;
+
+struct pci_driver_st {
+	uint16_t vendor;
+	uint16_t devid;
+	int (*attach_dev)(pci_data_t *pd);
+};
 
 #define MAX_SLOT 32
 
 static struct pci_data_st pci_data[MAX_SLOT];
 static int dev_count = 0;
+
+#define PCI_INTERRUPT_R 0x3c
+#define PCI_HDRTYPE_MULTIFN_MASK 0x80
+#define PCI_HDRTYPE_TYPE_MASK    0x7F
 
 static int pci_scan_bus()
 {
@@ -99,6 +123,13 @@ static int pci_scan_bus()
 			tmp = pci_conf_readw(bus,slot,0,0x8);
 			dev->progif= tmp >> 8;
 			dev->revid = tmp & 0xFF;
+			tmp = pci_conf_readl(bus,slot,0,0xc);
+			dev->hdrtype = (tmp >> 16) & 0xFF;
+			{
+				uint32_t intr = pci_conf_readl(
+						bus, slot, 0, PCI_INTERRUPT_R);
+				dev->irq_line = intr & 0xFF;
+			}
 			dev_count++;
 			dev++;
 		}
@@ -118,7 +149,7 @@ static const char *pci_class_string[] =
 };
 
 const char *get_pci_class_string(unsigned short classcode) {
-	if (classcode > 6) return pci_class_string[0];	
+	if (classcode > 6) return pci_class_string[0];
 	return pci_class_string[classcode];
 }
 
@@ -127,14 +158,15 @@ int lspci(void)
 	int i = 0;
 	pci_data_t dev = pci_data;
 	for (;i < dev_count; i++) {
-		printf("\nvendor:0x%04x, devid:0x%04x,class:%04x(%s)",
+		printf("\nvendor:%04x,devid:%04x,class:%04xh(%s)",
 		   dev->vendor,dev->device,
 		   dev->class_code, get_pci_class_string(dev->class_code >> 8)
 		   );
 		if (dev->revid > 0) {
-		   printf(",rev=%x",
-		   dev->revid);
+		   printf(",r%x", dev->revid);
 		}
+		printf(",t%d", dev->hdrtype);
+		printf(",irq%d", dev->irq_line);
 		dev++;
 	}
 	return dev_count;
