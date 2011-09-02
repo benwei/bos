@@ -99,19 +99,6 @@ static inline void show_prompt(struct session *s, const char *prompt)
 	screen_setcursor(s->cons->x, s->cons->y);
 }
 
-void command_help(struct session *s)
-{
-	new_line(s);
-	printf( "free  - memory info\n"
-		"clear - clear screen\n"
-		"ps    - process status\n");
-	printf( "uname - show system info\n"
-		"type  - dump memory info\n"
-		"lspci - dump pci info\n");
-	s->cons->y+=6;
-}
-
-
 void command_ps(struct session *s)
 {
 	struct task *t;
@@ -194,25 +181,50 @@ void command_scroll(struct session *s) {
 	screen_scrollto(pos);
 }
 
+extern void if_e100(void);
+
+void command_eth0(struct session *s) {
+	new_line(s);
+	if_e100();
+	s->cons->y+=2;
+}
+
 typedef struct st_cmdtable {
 	const char *cmd; /* name of command */
 	int len;  /* length of command */
 	void (*pfunc)(struct session *s);
+	const char *desc;
 } cmdtable;
 
+static void command_help(struct session *s);
+
 static cmdtable command_table[] = {
-	{"clear", 5, command_clear},
-	{"free", 4, command_free},
-	{"help", 4, command_help},
-	{"ps", 2, command_ps},
-	{"uname", 5, command_uname},
-	{"type ", 5, command_type},
-	{"lspci", 5, command_lspci},
-	{"scroll", 6, command_scroll},
+	{"clear",  5, &command_clear, "clear screen"},
+	{"free",   4, &command_free,  "memory info"},
+	{"help",   4, &command_help,  "help info" },
+	{"ps",     2, &command_ps,    "process status" },
+	{"uname",  5, &command_uname, "show system info" },
+	{"type ",  5, &command_type,  "type memory info" },
+	{"lspci",  5, &command_lspci, "list pci info" },
+	{"scroll", 6, &command_scroll,"scroll testing" },
+	{"ethtool",7, &command_eth0,  "list ethernet info" },
 	{"", 0, NULL}
 };
 
-static cmdtable *get_commandhandler(const char *buf)
+static void
+command_help(struct session *s)
+{
+	new_line(s);
+	cmdtable *pc = command_table;
+	while (pc->len != 0) {
+		printf( "%9s - %s\n", pc->cmd, pc->desc);
+		pc++;
+		s->cons->y++;
+	}
+}
+
+static cmdtable *
+get_commandhandler(const char *buf)
 {
 	const char *p = buf;
 	int cmdlen = 0;
@@ -251,7 +263,7 @@ void command_exec(struct session *s)
 void bshell_init(struct session *s, int task_id)
 {
 	move_cursor(s->cons->x,s->cons->y);
-	printf("%s started(pid=%d)\n", "bshell", (void *) task_id);
+	//printf("%s started(pid=%d)\n", "bshell", (void *) task_id);
 	s->cons->y++;
 	show_prompt(s, STR_PROMPT);
 }

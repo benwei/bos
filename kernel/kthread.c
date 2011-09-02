@@ -49,7 +49,7 @@ void thread_lazyman_sleep(int task_id)
 	tsw = timer_alloc();
 	timer_init(tsw, &fifo, 1);
 	timer_settime(tsw, 2);
-	printf("%s started(pid=%d)\n", (void *) __FUNCTION__, (void *) task_id);
+	// printf("%s started(pid=%d)\n", (void *) __FUNCTION__, (void *) task_id);
 	for (;;) {
 		update_mtime_by_pid(task_id, 1);
 		asm_cli();
