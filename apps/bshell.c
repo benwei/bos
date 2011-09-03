@@ -157,7 +157,7 @@ void command_type(struct session *s)
 	const char *p = (const char *) tadr;
 
 	new_line(s);
-	printf("type command %x\n", tadr);
+	printf("type command %p\n", tadr);
 
 	s->cons->y++;
 	for  (; i < 16; i++) {
@@ -181,12 +181,13 @@ void command_scroll(struct session *s) {
 	screen_scrollto(pos);
 }
 
-extern void if_e100(void);
+extern int if_e100(void);
 
 void command_eth0(struct session *s) {
+	int r = 0;
 	new_line(s);
-	if_e100();
-	s->cons->y+=2;
+	r = if_e100();
+	s->cons->y+=r;
 }
 
 typedef struct st_cmdtable {
@@ -207,7 +208,7 @@ static cmdtable command_table[] = {
 	{"type ",  5, &command_type,  "type memory info" },
 	{"lspci",  5, &command_lspci, "list pci info" },
 	{"scroll", 6, &command_scroll,"scroll testing" },
-	{"ethtool",7, &command_eth0,  "list ethernet info" },
+	{"net",    3, &command_eth0,  "list ethernet info" },
 	{"", 0, NULL}
 };
 

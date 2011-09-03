@@ -1,3 +1,4 @@
+#include "types.h"
 
 char *itoa(int l, char *tol, int size)
 {
@@ -42,7 +43,7 @@ hexc(char c, char *s, int i)  {
 	s[i-1] = hex(l);
 }
 
-const char *itohex(int c, char *s, int size)
+const char *itohex(uint32_t c, char *s, int size)
 {
 	int i;
 	char *p = (char *) &c;

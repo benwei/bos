@@ -1,58 +1,14 @@
 #include "os_stdio2.h"
 #include "string.h"
-#include "types.h"
 #include "pcireg.h"
+#include "os_pci.h"
+#include "net_e100.h"
 
-#if USE_INLINE_ASM
-static __inline uint32_t inl(int port)
-{
-	uint32_t data;
-	__asm __volatile("inl %w1,%0" : "=a" (data) : "d" (port));
-	return data;
-}
-
-static __inline void outl(int port, uint32_t data)
-{
-	__asm __volatile("outl %0,%w1" : : "a" (data), "d" (port));
-}
-#else
-extern uint32_t _inl(int port);
-extern void _outl(int port, uint32_t data);
-#define inl(port) _inl(port)
-#define outl(port, data) _outl(port, data)
-#endif
 /* pci definitions */
 static uint32_t pci_conf1_ioaddr = 0x0CF8;
 static uint32_t pci_conf1_iodata = 0x0CFC;
 
 
-
-#define MAX_BASE_ADDR 6
-struct pci_data_st {
-	uint16_t bus;
-	uint16_t slot;
-	uint16_t func;
-	uint16_t vendor;
-	uint16_t device;
-	uint16_t class_code;
-	uint8_t  progif;
-	uint8_t  revid;
-	uint8_t  hdrtype;
-
-	uint32_t addr_base[MAX_BASE_ADDR];
-	uint32_t addr_size[MAX_BASE_ADDR];
-	uint8_t  irq_line;
-};
-
-typedef struct pci_data_st *pci_pdata_t;
-
-typedef struct pci_driver *pci_driver_t;
-
-struct pci_driver {
-	uint16_t vendor;
-	uint16_t devid;
-	int (*attach_dev)(pci_pdata_t pd);
-};
 
 static int pci_bridge_attach(pci_pdata_t pd);
 
@@ -117,10 +73,6 @@ pci_conf_write(pci_pdata_t pd, uint32_t offset, uint32_t data)
 	outl(pci_conf1_iodata, data);
 }
 
-#define E100_VENDOR 0x8086
-#define E100_DEVICE 0x100E
-// pci_attach_vendor matches the vendor ID and device ID of a PCI device
-static int e100_attach(pci_pdata_t pd);
 
 struct pci_driver pci_attach_vendor[] = {
 	{ E100_VENDOR, E100_DEVICE, &e100_attach },
@@ -249,13 +201,6 @@ int lspci(void)
 	return _lspci(pci_data);
 }
 
-static __inline void
-show_reg_info(int regnum, uint32_t size, uint32_t base)
-{
-	printf("%s region %d: %d bytes at 0x%x\n",
-		regnum ? "io": "mem", regnum, size, base);
-}
-
 /* for debug purpose which booting */
 static int pci_show_addrs = 0;
 
@@ -310,10 +255,6 @@ pci_func_enable(pci_pdata_t f)
 				f->vendor, f->device,
 				regnum, base, size);
 	}
-
-	printf("PCI function %02x:%02x.%d (%04x:%04x) enabled\n",
-	f->bus, f->slot, f->func,
-	f->vendor, f->device);
 }
 
 int pci_init(void)
@@ -323,53 +264,9 @@ int pci_init(void)
 }
 
 /* device attach */
-
 static int pci_bridge_attach(pci_pdata_t pd) {
 	printf("bridge: Not implement yet.\n");
 	return 0;
 }
 
 
-static struct pci_data_st e100 = {0};
-
-void e100_init()
-{
-	// reset device before using
-	// create receive queue
-}
-
-struct nic {
-	uint16_t io_addr;
-	uint16_t io_size;
-};
-
-struct nic nic;
-
-#define E100_IO_INDEX  1
-static int e100_attach(pci_pdata_t pd) {
-	pci_func_enable(pd);
-	e100.bus = pd->bus;
-	e100.device = pd->device;
-	e100.class_code= pd->class_code;
-	int i;
-	for (i = 0; i < 6; i++) {
-		e100.addr_base[i] = pd->addr_base[i];
-		e100.addr_size[i] = pd->addr_size[i];
-	}
-	e100.irq_line = pd->irq_line;
-
-	// initialize network interface controller
-	nic.io_addr = pd->addr_base[E100_IO_INDEX];
-	nic.io_size = pd->addr_size[E100_IO_INDEX];
-
-	// initize e100 driver
-	e100_init();
-
-	return 0;
-}
-
-void if_e100(void)
-{
-	show_reg_info(0, e100.addr_size[0], e100.addr_base[0]);
-	show_reg_info(1, nic.io_size, nic.io_addr);
-}

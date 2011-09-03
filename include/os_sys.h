@@ -2,7 +2,7 @@
 #define OS_SYS_H
 
 #ifndef BOS_VERSION
-#define BOS_VERSION "0.2"
+#define BOS_VERSION "0.21"
 #endif
 
 struct BOOTINFO { /* 0x0ff0-0x0fff */

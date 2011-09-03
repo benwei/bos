@@ -1,15 +1,37 @@
 #include "os_stdio.h"
 #include "os_stdio2.h"
 #include "os_keyboard.h"
-// #include "os_bits.h"
 #include "string.h"
 
 char *itoa(int l, char *tol, int size);
 #define MCPY(d, t)	{ while(*t != '\0')	*d++ = *t++; }
-#define BUFSIZE 256
-#define MAX_NUMSIZE 12
-#define MAX_FMTSIZE 10
+#define BUFSIZE       256
+#define MAX_NUMSIZE    12
+#define MAX_FMTSIZE    10
+#define MAX_HEX_NUMLEN  8
 
+static int
+fmt_handling(uint32_t b, const char *format, char *buf, int buflen) 
+{
+	const char *t;
+	uint8_t flen = 0;
+
+	t = itohex(b, buf, buflen+1);
+	if (*format != '0') {
+		return t - buf;
+	}
+	t = buf;
+	if (format[1] != 'x' || format[1] != 'p') {
+		flen = format[1] - '0';
+		if (flen < buflen) {
+			t+= buflen - flen;
+		}
+	}
+	return t - buf;
+}
+
+/* Notice: if buffer size is too small, you will hit buffer overflow */
+/* known issue: this part need to modify if we want to support 64bit */
 int vsprintf(char *buf, const char *fmt, va_list args)
 {
 	char snum[MAX_NUMSIZE] = {0};
@@ -28,7 +50,7 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 			if (*p == 0) {
 				break;
 			} else if (*p=='c' || *p=='d' || *p=='x' ||
-				*p=='s' || *p=='%') {
+				*p=='s' || *p=='%' || *p == 'p') {
 				format[i++] = *p;
 				format[i] = '\0';
 				break;
@@ -37,10 +59,10 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 		}
 
 		switch(*p++) {
-		case 'd': // follow next
+		case 'd':
 		{
 			int b = va_arg(args, int);
-			t=itoa((int)b, snum, sizeof(snum));
+			t=itoa((int)b, snum, MAX_NUMSIZE);
 
 			MCPY(d, t);
 		}
@@ -49,19 +71,21 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 			t=(const char *) va_arg(args, const char *);
 			MCPY(d, t);
 			break;
-		case 'x':
+		case 'p': 
+		{ 
+			uint32_t b = va_arg(args, uint32_t);
+			uint32_t offset = fmt_handling(b, format, snum + 2, MAX_HEX_NUMLEN);
+			char *p = snum+offset;
+			p[0] = '0';
+			p[1] = 'x';
+			MCPY(d, p);
+			break;
+		}
+		case 'x': 
 		{
-			// buf[8] without null terminated char
-			int b = va_arg(args, int);
-			t = itohex(b, snum, 9);
-			if (*format == '0') {
-				unsigned char flen = 0;
-				t = snum;
-				if (format[1] != 'x') {
-					flen = format[1] - '0';
-					t+= flen;
-				}
-			}
+			uint32_t b = va_arg(args, uint32_t);
+			uint32_t offset = fmt_handling(b, format, snum, MAX_HEX_NUMLEN);
+			t = snum+offset;
 			MCPY(d, t);
 			break;
 		}
@@ -71,7 +95,7 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 		case '%':
 			*d++ = '%';
 			break;
-		default: // unknown argument
+		default: /* unknown argument */
 			break;
 		}
 	}

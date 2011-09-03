@@ -90,7 +90,7 @@ package_by_mount: $(IMG_NAME) $(SYSBIN)
 
 # I like this because use mcopy from mtools without root permission for packaging
 package: $(IMG_NAME) $(SYSBIN)
-	mcopy -i "$(IMG_NAME)" "$(SYSBIN)"  ::
+	mcopy -n -o -i "$(IMG_NAME)" "$(SYSBIN)"  ::
 	mdir -i "$(IMG_NAME)"
 
 run: package
