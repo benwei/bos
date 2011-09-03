@@ -1,6 +1,8 @@
 #ifndef OS_SYS_H
 #define OS_SYS_H
 
+#include "types.h"
+
 #ifndef BOS_VERSION
 #define BOS_VERSION "0.21"
 #endif
