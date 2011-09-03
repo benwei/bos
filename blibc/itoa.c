@@ -34,21 +34,22 @@ char *itoa(int l, char *tol, int size)
 }
 
 
-#define hex(l) ((l < 10) ? (0x30+l) : (0x41+l-10))
+#define hex(l,chr_a) ((l < 10) ? (0x30+l) : (chr_a+l-10))
 static inline void
-hexc(char c, char *s, int i)  {
+hexc(char c, char *s, int i, char chr_a)  {
 	char l = c & 0x000f;
-	s[i] = hex(l);
+	s[i] = hex(l, chr_a);
 	l = (c & 0x00f0) >> 4;
-	s[i-1] = hex(l);
+	s[i-1] = hex(l, chr_a);
 }
 
-const char *itohex(uint32_t c, char *s, int size)
+const char *itohex(uint32_t c, char *s, int size, int upper)
 {
 	int i;
+	int chr_a = upper ? 'A':'a';
 	char *p = (char *) &c;
 	for (i = sizeof(c)*2 - 1; i > 0; i-=2) {
-		hexc(*p, s, i);
+		hexc(*p, s, i, chr_a);
 		p++;
 	}
 

@@ -4,25 +4,35 @@
 #include "string.h"
 
 char *itoa(int l, char *tol, int size);
+const char *itohex(int c, char *s, int size, int upper);
+
 #define MCPY(d, t)	{ while(*t != '\0')	*d++ = *t++; }
 #define BUFSIZE       256
 #define MAX_NUMSIZE    12
 #define MAX_FMTSIZE    10
 #define MAX_HEX_NUMLEN  8
 
+#define is_num(c) (c >= '0' && c <= '9')
+#define numval(c)  (c - '0')
+
 static int
-fmt_handling(uint32_t b, const char *format, char *buf, int buflen) 
+fmt_handling(uint32_t value, const char *fmt, int fmtlen, char *buf, int buflen)
 {
 	const char *t;
 	uint8_t flen = 0;
+	int fmttype = fmt[fmtlen-1];
+	int upper = 1;
 
-	t = itohex(b, buf, buflen+1);
-	if (*format != '0') {
+	if (fmttype - 'a' > 0) 
+		upper = 0;
+
+	t = itohex(value, buf, buflen+1, upper);
+	if (*fmt != '0') { /* no leading zero char */
 		return t - buf;
 	}
 	t = buf;
-	if (format[1] != 'x' || format[1] != 'p') {
-		flen = format[1] - '0';
+	if (is_num(fmt[1])) {
+		flen = numval(fmt[1]);
 		if (flen < buflen) {
 			t+= buflen - flen;
 		}
@@ -74,7 +84,7 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 		case 'p': 
 		{ 
 			uint32_t b = va_arg(args, uint32_t);
-			uint32_t offset = fmt_handling(b, format, snum + 2, MAX_HEX_NUMLEN);
+			uint32_t offset = fmt_handling(b, format, i, snum + 2, MAX_HEX_NUMLEN);
 			char *p = snum+offset;
 			p[0] = '0';
 			p[1] = 'x';
@@ -84,7 +94,7 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 		case 'x': 
 		{
 			uint32_t b = va_arg(args, uint32_t);
-			uint32_t offset = fmt_handling(b, format, snum, MAX_HEX_NUMLEN);
+			uint32_t offset = fmt_handling(b, format, i, snum, MAX_HEX_NUMLEN);
 			t = snum+offset;
 			MCPY(d, t);
 			break;

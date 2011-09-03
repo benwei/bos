@@ -19,9 +19,6 @@ void write_output_port(unsigned char c);
 
 #define kbwait() _wait_input_empty()
 
-// utils
-const char *itohex(int c, char *s, int size);
-
 // screen output
 void _cputs(const char *msg);
 void _clrscr(void);

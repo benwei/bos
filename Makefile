@@ -127,3 +127,4 @@ info:
 
 clean:
 	rm -f $(IMG_NAME) *.elf *.img $(SYSBIN) *.o *.lst *.map $(KERN_OBJ) $(HW_DEP_ASM_OBJ) 
+	make -C test clean
