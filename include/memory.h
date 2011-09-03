@@ -13,6 +13,8 @@ typedef struct e820_st {
 #define E820_ADDR_RESERVED 2
 #define MAX_E820_NUM 20
 
+#define PGSIZE 4096
+
 /* from main.s */
 int get_e820_num(void);
 const unsigned int *get_e820_data(void);
