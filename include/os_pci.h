@@ -25,8 +25,11 @@ extern void _outl(int port, uint32_t data);
 
 #define MAX_BASE_ADDR 6
 
+struct pci_bus ;
+
 struct pci_data_st {
-	uint16_t bus;
+	//struct   pci_bus *bus;
+	uint32_t busno;
 	uint16_t slot;
 	uint16_t func;
 	uint16_t vendor;
@@ -51,6 +54,11 @@ struct pci_driver {
 	int (*attach_dev)(pci_pdata_t pd);
 };
 
+struct pci_bus {
+    pci_pdata_t parent_bridge;
+    uint32_t busno;
+};
+
 extern int pci_init(void);
 
 void pci_func_enable(pci_pdata_t f);
@@ -72,7 +80,7 @@ static __inline void
 show_pci_enabled(pci_pdata_t f)
 {
 	printf("PCI function %02x:%02x.%d (%04x:%04x) enabled\n",
-	f->bus, f->slot, f->func,
+	f->busno, f->slot, f->func,
 	f->vendor, f->device);
 }
 #endif /* PCI_H */

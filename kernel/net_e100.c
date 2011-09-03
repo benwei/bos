@@ -49,7 +49,7 @@ static void e100_reset()
 static int
 e100_exec_cmd (int csr_comp, uint8_t cmd)
 {
-    int retry = 10;
+    int retry = 30;
     int scb_command;
 
     outb(nic.io_base + csr_comp, cmd);
@@ -203,6 +203,21 @@ int e100_transmit (const char *data, uint16_t len)
     return 0;
 }
 
+typedef int (*func_net_rx)(char *);
+typedef int (*func_net_tx)(const char *, uint16_t);
+
+static func_net_rx _nic_rx = &e100_receive;
+static func_net_tx _nic_tx = &e100_transmit;
+
+int net_receive(char *data)
+{
+	return _nic_rx(data);
+}
+int net_transmit (const char *data, uint16_t len)
+{
+	return _nic_tx(data, len);
+}
+
 static void
 cbl_validate () 
 {
@@ -287,15 +302,15 @@ rfa_init ()
 
 /**
  * This section is for test when we finished rfa_alloc ()  
-#define HAVE_RFA_ALLOC_TEST
  **/
+//#define HAVE_RFA_ALLOC_TEST
 #ifdef HAVE_RFA_ALLOC_TEST
     while (nic.rfa.rfd_avail > 0)
         rfa_validate ();
 
     int scb_status = inb(nic.io_base + CSR_STATUS);
 
-    printf ("zhangchi: rfd slot is full, current RU state = %02x\n", scb_status & RUS_MASK);
+    printf ("rfd slot is full, current RU state = %02x\n", scb_status & RUS_MASK);
 
     char s[1518];
     while (rfa_retrieve_data (s) >= 0);
@@ -317,7 +332,7 @@ rfa_validate ()
 
         nic.rfa.rfd_avail --;
         nic.rfa.rfd_wait ++;
-        //cprintf ("zhangchi: validate, avail = %d, wait = %d,   slot = %x\n", 
+        //cprintf ("validate, avail = %d, wait = %d,   slot = %x\n", 
         //    nic.rfa.rfd_avail, nic.rfa.rfd_wait, nic.rfa.rear);
     }
 }
@@ -330,7 +345,7 @@ rfa_retrieve_data (char* data)
 
     nic.rfa.rfd_avail ++;
     nic.rfa.rfd_wait --;
-    //cprintf ("zhangchi: retrieve, avail = %d, wait = %d,   slot = %x\n", 
+    //cprintf ("retrieve, avail = %d, wait = %d,   slot = %x\n", 
         //nic.rfa.rfd_avail, nic.rfa.rfd_wait, nic.rfa.front);
 
     nic.rfa.front->prev->rfd_control &= ~RFDF_S;
@@ -354,7 +369,7 @@ e100_receive (char *data)
         return -E_RFA_EMPTY;
 
     int r = rfa_retrieve_data (data);
-    
+ 
     int scb_status = inb(nic.io_base + CSR_STATUS);
     if ((scb_status & RUS_MASK) == RUS_SUSPEND)
         e100_exec_cmd (CSR_COMMAND, RUC_RESUME); 
@@ -373,17 +388,15 @@ static void e100_init()
 	/* all interrupts to be disabled */
 	r = e100_exec_cmd(CSR_INT, 1);
 	printf("e100 CSR_INT ret=%d\n", r);
-	/* create receive queue */
+
 	cbl_init();
-	printf("cbl_init\n");
 	rfa_init();
 	printf("rfa_init, page_index=%d\n", page_index);
-	return ;
 }
 
 int e100_attach(pci_pdata_t pd) {
 	pci_func_enable(pd);
-	e100.bus = pd->bus;
+	e100.busno = pd->busno;
 	e100.slot = pd->slot;
 	e100.func = pd->func;
 	e100.device = pd->device;
@@ -406,13 +419,32 @@ int e100_attach(pci_pdata_t pd) {
 	return 0;
 }
 
+#if 0
+int nic_detail(void)
+{
+	printf("eth0 Link encap:Ethernet  HWaddr 52:54:00:12:34:56 "
+               "     inet addr:10.0.2.15 Bcast:10.0.2.255  Mask:255.255.255.0"
+               "     UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1"
+               "     RX packets:5 errors:0 dropped:0 overruns:0 frame:0"
+               "     TX packets:6 errors:0 dropped:0 overruns:0 carrier:0"
+               "     collisions:0 txqueuelen:100 "
+               "     RX bytes:2004 (1.9 KiB)  TX bytes:1746 (1.7 KiB)"
+               "     Interrupt:9 Base address:0xc100\n");
+	return 1;
+}
+#endif 
+
 int nic_e100(void)
 {
 	show_pci_enabled(&e100);
 	show_reg_info(0, e100.addr_size[0], e100.addr_base[0]);
 	show_reg_info(1, nic.io_size, nic.io_base);
-	printf("e100 irq: %d\n", e100.irq_line);
-	return 4; /* screen line for print */
+    	printf ("cbl avail = %d, wait = %d, slot = %p, irq=%d\n",
+        	 nic.cbl.cb_avail, nic.cbl.cb_wait, nic.cbl.front,
+		 e100.irq_line);
+    	printf ("rfa avail = %d, wait = %d, slot = %p\n", 
+        	 nic.rfa.rfd_avail, nic.rfa.rfd_wait, nic.rfa.front);
+	return 5; /* screen line for print */
 }
 
 int show_nic(void)

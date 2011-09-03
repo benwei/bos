@@ -9,13 +9,16 @@ endif
 
 TESTDIRS=$(wildcard test*)
 
+# -redir tcp:4080::80
+# tells qemu to listen on port 4080 and to forward connections to bos's port 80.
+NET_OPT=-net user -net nic,model=i82559er -redir tcp:4080::80
 all: run
 
 run:
 ifeq ($(KNAME),$(KNAME_CYGWIN))
-	qemu -fda "$(IMG_NAME)"
+	qemu -fda "$(IMG_NAME)" $(NET_OPT)
 else
-	qemu-system-x86_64 -boot a -M $(MACHINE) -fda "$(IMG_NAME)"
+	qemu-system-x86_64 -boot a -M $(MACHINE) -fda "$(IMG_NAME)" $(NET_OPT)
 endif
 
 check:

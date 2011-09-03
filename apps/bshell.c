@@ -15,6 +15,7 @@
 #include "screen.h"
 #include "keymap.h"
 #include "memory.h"
+#include "net.h"
 
 #ifndef BOS_VERSION
 #define BOS_VERSION "0.2"
@@ -181,13 +182,19 @@ void command_scroll(struct session *s) {
 	screen_scrollto(pos);
 }
 
-extern int show_nic(void);
-
 void command_net(struct session *s) {
 	int r = 0;
 	new_line(s);
 	r = show_nic();
 	s->cons->y+=r;
+}
+
+void command_net_tx(struct session *s) {
+	int r = 0;
+	new_line(s);
+	r = net_transmit("Hello", 5);
+	printf("tx: 1 with net_transmit\n",r);
+	s->cons->y++;
 }
 
 typedef struct st_cmdtable {
@@ -208,7 +215,8 @@ static cmdtable command_table[] = {
 	{"type ",  5, &command_type,  "type memory info" },
 	{"lspci",  5, &command_lspci, "list pci info" },
 	{"scroll", 6, &command_scroll,"scroll testing" },
-	{"net",    3, &command_net,  "list ethernet info" },
+	{"netsend",7, &command_net_tx,"test ethernet send" },
+	{"net",    3, &command_net,   "list ethernet info" },
 	{"", 0, NULL}
 };
 

@@ -62,14 +62,14 @@ pci_conf_readw(uint16_t bus, uint16_t slot,
 
 static uint32_t
 pci_conf_read(pci_pdata_t pd, uint32_t offset) {
-	pci_conf_apply_addr(pd->bus, pd->func, pd->slot, offset);
+	pci_conf_apply_addr(pd->busno, pd->func, pd->slot, offset);
 	return inl(pci_conf1_iodata);
 }
 
 void
 pci_conf_write(pci_pdata_t pd, uint32_t offset, uint32_t data)
 {
-	pci_conf_apply_addr(pd->bus, pd->func, pd->slot, offset);
+	pci_conf_apply_addr(pd->busno, pd->func, pd->slot, offset);
 	outl(pci_conf1_iodata, data);
 }
 
@@ -92,28 +92,28 @@ static int pci_attach_match(uint32_t key1, uint32_t key2,
 
 static int pci_scan_bus(pci_pdata_t dev)
 {
-	int bus = 0, slot = 0;
+	int busno = 0, slot = 0;
 
 	uint16_t vendor;
 	uint16_t tmp;
 	for ( ; slot < MAX_SLOT ; slot++) {
 		/* vendors that == 0xFFFF, it must be a non-existent device. */
-		if ((vendor = pci_conf_readw(bus,slot,0,0)) != 0xFFFF) {
-			dev->bus = bus;
+		if ((vendor = pci_conf_readw(busno,slot,0,0)) != 0xFFFF) {
+			dev->busno = busno;
 			dev->slot = slot;
 			dev->func = 0;
 
 			dev->vendor = vendor;
-			dev->device = pci_conf_readw(bus,slot,0,2);
-			dev->class_code= pci_conf_readw(bus,slot,0,0xA);
-			tmp = pci_conf_readw(bus,slot,0,0x8);
+			dev->device = pci_conf_readw(busno,slot,0,2);
+			dev->class_code= pci_conf_readw(busno,slot,0,0xA);
+			tmp = pci_conf_readw(busno,slot,0,0x8);
 			dev->progif= tmp >> 8;
 			dev->revid = tmp & 0xFF;
-			tmp = pci_conf_readl(bus,slot,0,0xc);
+			tmp = pci_conf_readl(busno,slot,0,0xc);
 			dev->hdrtype = (tmp >> 16) & 0xFF;
 			{
 				uint32_t intr = pci_conf_readl(
-						bus, slot, 0, PCI_INTERRUPT_R);
+						busno, slot, 0, PCI_INTERRUPT_R);
 				dev->irq_line = intr & 0xFF;
 			}
 			/* check attach */
@@ -251,7 +251,7 @@ pci_func_enable(pci_pdata_t f)
 			printf("PCI device %02x:%02x.%d (%04x:%04x) "
 				"may be misconfigured: "
 				"region %d: base 0x%x, size %d\n",
-				f->bus, f->slot, f->func,
+				f->busno, f->slot, f->func,
 				f->vendor, f->device,
 				regnum, base, size);
 	}
@@ -263,10 +263,30 @@ int pci_init(void)
 	return pci_scan_bus(pci_data);
 }
 
-/* device attach */
-static int pci_bridge_attach(pci_pdata_t pd) {
-	printf("bridge: Not implement yet.\n");
-	return 0;
+static int
+pci_bridge_attach(pci_pdata_t pcif) {
+#if 1
+	uint32_t ioreg  = pci_conf_read(pcif, PCI_BRIDGE_STATIO_REG);
+	uint32_t busreg = pci_conf_read(pcif, PCI_BRIDGE_BUS_REG);
+	
+	if (PCI_BRIDGE_IO_32BITS(ioreg)) {
+		printf("PCI: %02x:%02x.%d: 32-bit bridge IO not supported.\n",
+			pcif->busno, pcif->slot, pcif->func);
+		return 0;
+	}
+	
+	struct pci_bus nbus;
+	memset(&nbus, 0, sizeof(nbus));
+	nbus.parent_bridge = pcif;
+	nbus.busno = (busreg >> PCI_BRIDGE_BUS_SECONDARY_SHIFT) & 0xff;
+
+	// if (pci_show_devs)
+		printf("PCI: %02x:%02x.%d: bridge to PCI bus %d--%d\n",
+			pcif->busno, pcif->slot, pcif->func,
+			nbus.busno,
+			(busreg >> PCI_BRIDGE_BUS_SUBORDINATE_SHIFT) & 0xff);
+	
+	// pci_scan_bus(&nbus);
+#endif
+	return 1;
 }
-
-

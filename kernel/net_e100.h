@@ -4,8 +4,8 @@
 #include "os_pci.h"
 
 #define E100_VENDOR 0x8086
-#define E100_DEVICE 0x100E
-
+// #define E100_DEVICE 0x100E
+#define E100_DEVICE 0x1209
 
 // CSR Address Registers
 #define E100_MEMORY     0
@@ -139,7 +139,6 @@ struct tcb {
 };
 int e100_transmit (const char *data, uint16_t len);
 
-
 // Control Blocks
 struct cb {
     volatile uint16_t cb_status;
@@ -166,10 +165,6 @@ struct cbl {
     struct cb *front, *rear;
 };
 
-
-
-
-
 // Receive Frame Descriptor
 struct rfd {
     volatile uint16_t rfd_status;
@@ -186,7 +181,6 @@ struct rfd {
     struct rfd *prev, *next;
     physaddr_t phy_addr;   
 };
-
 
 
 // Receive Frame Area
@@ -209,7 +203,7 @@ struct nic {
 
 /* pci_attach_vendor matches the vendor ID and device ID of a PCI device */
 int e100_attach(pci_pdata_t pd);
-int e100_transmit (const char *data, uint16_t len);
-int e100_recv (char *data);
+int e100_transmit(const char *data, uint16_t len);
+int e100_receive(char *data);
 
 #endif /* NET_E100_H */
