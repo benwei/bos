@@ -11,7 +11,6 @@
 #include "os_keyboard.h"
 #include "os_fifo.h"
 #include "os_memory.h"
-#include "os_tss.h"
 #include "kthread.h"
 #include "os_timer.h"
 #include "string.h"
