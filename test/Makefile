@@ -6,6 +6,9 @@ MACHINE=pc
 else
 MACHINE=pc-0.11 
 endif
+
+TESTDIRS=$(wildcard test*)
+
 all: run
 
 run:
@@ -20,4 +23,8 @@ check:
 
 clean:
 	rm -f *.img
-
+	@for i in $(TESTDIRS) ; do \
+	if [ -d "$$i" ]; then \
+		echo "clean $$i" ; \
+		make -C $$i clean ; \
+	fi done
