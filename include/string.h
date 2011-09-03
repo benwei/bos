@@ -18,8 +18,11 @@ int strcmp(const char *s1, const char *s2);
 
 int strncmp(const char *s1, const char *s2, int n);
 
-void *memcpy(void *dest, const void *src, int cnt);
+void *memcpy(void *dest, const void *src, int n);
+
+void *memmove(void *dest, const void *src, size_t n);
 
 void *memset(void *dest, int c, unsigned int size);
 
+void panic(const char *fmt, ...);
 #endif
