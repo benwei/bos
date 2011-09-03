@@ -181,12 +181,12 @@ void command_scroll(struct session *s) {
 	screen_scrollto(pos);
 }
 
-extern int if_e100(void);
+extern int show_nic(void);
 
-void command_eth0(struct session *s) {
+void command_net(struct session *s) {
 	int r = 0;
 	new_line(s);
-	r = if_e100();
+	r = show_nic();
 	s->cons->y+=r;
 }
 
@@ -208,7 +208,7 @@ static cmdtable command_table[] = {
 	{"type ",  5, &command_type,  "type memory info" },
 	{"lspci",  5, &command_lspci, "list pci info" },
 	{"scroll", 6, &command_scroll,"scroll testing" },
-	{"net",    3, &command_eth0,  "list ethernet info" },
+	{"net",    3, &command_net,  "list ethernet info" },
 	{"", 0, NULL}
 };
 

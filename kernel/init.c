@@ -40,8 +40,6 @@ void setup_hw(void)
 	asm_sti();
 	puts("init pit\n");
 	init_pit();
-	puts("pci scan bus\n");
-	pci_init();
 	puts("setup hardware done\n");
 }
 
@@ -56,7 +54,7 @@ void check_memory()
 	mem_upbound_size = memtest(0x00400000, 0xbfffffff);
 #endif
 	memman_init(memman);
-	memman_free(memman,0x00400000, mem_upbound_size - 0x00400000);
+	memman_free(memman,0x00400000, mem_upbound_size);
 }
 
 /* move_cursor */
@@ -79,7 +77,7 @@ void _benmain(void)
 	int c = 0;
 	int keybuf[128]={0};
 	struct FIFO32 fifo;
-	struct TIMER *timer, *timer2, *timer3;
+	struct TIMER *timer;
 	fifo32_init(&fifo, 128, keybuf);
 	struct TSS32 tss_a, tss_c;
 	env_init();
@@ -90,14 +88,8 @@ void _benmain(void)
 	i=0;	
 
 	timer = timer_alloc();
-	timer_init(timer, &fifo, 10);
-	timer_settime(timer, 1000);
-	timer2 = timer_alloc();
-	timer_init(timer2, &fifo, 3);
-	timer_settime(timer2, 200);
-	timer3 = timer_alloc();
-	timer_init(timer3, &fifo, 1);
-	timer_settime(timer3, 50);
+	timer_init(timer, &fifo, 1);
+	timer_settime(timer, 50);
 
 	tss_a.ldtr = 0;
 	tss_a.iomap = 0x40000000;
@@ -114,8 +106,10 @@ void _benmain(void)
 
 	load_tr(3 * 8); // record current working task to tss_a
 	task_create((int) &thread_kb_io, memman, "bshell");
-	task_create((int) &thread_lazyman_sleep, memman, "sleep2");
 
+	/* strange issue encountered if run pci_init at the setup_hw() */
+	puts("pci scan bus\n");
+	pci_init();
 	for (;;) {
 		asm_cli();
 		if (fifo32_status(&fifo) == 0) {
@@ -124,18 +118,8 @@ void _benmain(void)
 		} else { /* scan_code input */
 			c=fifo32_get(&fifo);
 			asm_sti();
-			if (c == 3) { 
+			if (c == 1) { 
 				farjmp(0, 4*8);
-				puts("2[msec]\n");
-			} else if (c == 10) {
-				puts("10[sec]\n");
-			} else if (c <= 1) {
-				if (c != 0) {
-					timer_init(timer3, &fifo, 0);
-				} else {
-					timer_init(timer3, &fifo, 1);
-				}
-				timer_settime(timer3, 50);
 			} else {
 				puts("disabled boot options.\n");
 			}
