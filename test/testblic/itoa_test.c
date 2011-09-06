@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "types.h"
 #include "testlib.h"
 
 char *itoa(int l, char *tol, int size);
@@ -59,6 +60,8 @@ int itoa_testmain(int option)
         ok_if(rc, "itohex test 3");
 	rc = test_itohex(0xA7890000, 1, tol, sizeof(tol));
         ok_if(rc, "itohex test 3");
+	rc = test_itohex(1<<31, 1, tol, sizeof(tol));
+        ok_if(rc, "itohex test 4");
 
         return 0;
 }
