@@ -21,10 +21,10 @@ static __inline void
 pci_conf_apply_addr(uint16_t bus, uint16_t slot,
 		   uint16_t func, uint16_t offset)
 {
-	unsigned long addr;
-	unsigned long lbus = (unsigned long)bus;
-	unsigned long lslot = (unsigned long)slot;
-	unsigned long lfunc = (unsigned long)func;
+	uint32_t addr;
+	uint32_t lbus = (uint32_t)bus;
+	uint32_t lslot = (uint32_t)slot;
+	uint32_t lfunc = (uint32_t)func;
 	/* 31    : Enable Bit
 	   24-30 : Reserved
 	   16-23 : Bus Number
@@ -35,7 +35,7 @@ pci_conf_apply_addr(uint16_t bus, uint16_t slot,
 	*/
 
 	/* create configuration address as per Figure 1 */
-	addr = (unsigned long)((lbus << 16) | (lslot << 11) |
+	addr = (uint32_t)((lbus << 16) | (lslot << 11) |
 			  (lfunc << 8) | (offset & 0xfc) | 1<<31);
 
 	/* write out the address */
@@ -50,13 +50,13 @@ pci_conf_readl(uint16_t bus, uint16_t slot,
 	return inl(pci_conf1_iodata);
 }
 
-unsigned short
+uint16_t
 pci_conf_readw(uint16_t bus, uint16_t slot,
 		   uint16_t func, uint16_t offset)
 {
 	pci_conf_apply_addr(bus, func, slot, offset);
 	/* read word in the data */
-	return (unsigned short)((inl(pci_conf1_iodata)
+	return (uint16_t)((inl(pci_conf1_iodata)
 		>> ((offset & 2) * 8)) & 0xffff);
 }
 
@@ -182,7 +182,8 @@ static int _lspci(pci_pdata_t dev)
 {
 	int i = 0;
 	for (;i < dev_count; i++) {
-		printf("\nvendor:%04x,devid:%04x,class:%04xh(%s)",
+		printf("\n%02x:%02x.%d vendor:%04x,devid:%04x,class:%04xh(%s)",
+		   dev->busno, dev->slot, dev->func,
 		   dev->vendor,dev->device,
 		   dev->class_code, get_pci_class_string(dev->class_code)
 		   );
@@ -266,17 +267,17 @@ int pci_init(void)
 static int
 pci_bridge_attach(pci_pdata_t pcif) {
 
-/* compatable issue on line, disable this part code in advance */ 
+/* compatable issue on line, disable this part code in advance */
 #if 0
 	uint32_t ioreg  = pci_conf_read(pcif, PCI_BRIDGE_STATIO_REG);
 	uint32_t busreg = pci_conf_read(pcif, PCI_BRIDGE_BUS_REG);
-	
+
 	if (PCI_BRIDGE_IO_32BITS(ioreg)) {
 		printf("PCI: %02x:%02x.%d: 32-bit bridge IO not supported.\n",
 			pcif->busno, pcif->slot, pcif->func);
 		return 0;
 	}
-	
+
 	struct pci_bus nbus;
 	memset(&nbus, 0, sizeof(nbus));
 	nbus.parent_bridge = pcif;
@@ -287,7 +288,7 @@ pci_bridge_attach(pci_pdata_t pcif) {
 			pcif->busno, pcif->slot, pcif->func,
 			nbus.busno,
 			(busreg >> PCI_BRIDGE_BUS_SUBORDINATE_SHIFT) & 0xff);
-	
+
 	// pci_scan_bus(&nbus);
 #endif
 	return 1;
