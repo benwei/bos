@@ -28,4 +28,9 @@ extern int g_mtime[];
 
 void bshell_init(struct session *s, int taskid);
 
+#define new_line(s) { \
+	move_cursor(s->cons->x,s->cons->y); \
+	clearline(); \
+	move_cursor(s->cons->x,s->cons->y); }
+
 #endif

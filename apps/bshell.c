@@ -7,19 +7,14 @@
 */
 #include "kthread.h"
 #include "os_stdio.h"
-#include "os_stdio2.h"
+#include "stdio.h"
 #include "os_bits.h"
 #include "os_pci.h"
 #include "bshell.h"
 #include "string.h"
-#include "screen.h"
 #include "keymap.h"
 #include "memory.h"
 #include "net.h"
-
-#ifndef BOS_VERSION
-#define BOS_VERSION "0.2"
-#endif
 
 static int key_shift = 0;
 static int key_caps  = 0;
@@ -56,10 +51,6 @@ char keytable_shift[MAX_KEYTB_SIZE] = {
 
 
 #define MEM_MB(x) ((x)/1024/1024)
-#define new_line(s) { \
-	move_cursor(s->cons->x,s->cons->y); \
-	clearline(); \
-	move_cursor(s->cons->x,s->cons->y); }
 
 
 void dump_e820(struct session *s)
@@ -182,20 +173,9 @@ void command_scroll(struct session *s) {
 	screen_scrollto(pos);
 }
 
-void command_net(struct session *s) {
-	int r = 0;
-	new_line(s);
-	r = show_nic();
-	s->cons->y+=r;
-}
+void command_net(struct session *s);
+void command_net_tx(struct session *s);
 
-void command_net_tx(struct session *s) {
-	int r = 0;
-	new_line(s);
-	r = net_transmit("Hello", 5);
-	printf("tx: 1 with net_transmit\n",r);
-	s->cons->y++;
-}
 
 typedef struct st_cmdtable {
 	const char *cmd; /* name of command */

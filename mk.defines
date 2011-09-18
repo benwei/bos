@@ -18,3 +18,5 @@ endif
 EXEEXT =
 DLLEXT = .so
 endif
+
+DD=dd

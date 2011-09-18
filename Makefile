@@ -3,7 +3,6 @@ SYSBIN=MYOS.BIN
 SBINS=$(OUTPUT_DIR)/$(SYSBIN)
 IMG_NAME=bos.img
 OUTPUT_DIR=.
-DD=dd
 
 # defines for global use
 include ./mk.defines
