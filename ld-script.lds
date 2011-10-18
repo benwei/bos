@@ -9,8 +9,12 @@ SECTIONS
 	.text : 
 	{ 	kernel/main.o (.text)
 	 	kernel/osfunc.o (.text)
+		*(.hwsetup.text)
 		*(.text) 
 	}
 	. = ALIGN(4);
-	.data : { *(.data) }
-}
+	.data :
+	{	*(.hwsetup.data)
+		*(.data)
+	}
+
