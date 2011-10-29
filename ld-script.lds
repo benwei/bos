@@ -17,4 +17,4 @@ SECTIONS
 	{	*(.hwsetup.data)
 		*(.data)
 	}
-
+}

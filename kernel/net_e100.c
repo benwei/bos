@@ -23,11 +23,11 @@ static void rfa_alloc();
 static void rfa_validate ();
 static int rfa_retrieve_data (char *data);
 /*
-* 0x84 is an unused port, 
+* 0x84 is an unused port,
 * time to execute the inb is appromimately 1.25us
 * delay about 10us.
 */
-static 
+static
 __inline void delay(int i)
 {
 	while(--i >=0) {
@@ -369,10 +369,10 @@ e100_receive (char *data)
         return -E_RFA_EMPTY;
 
     int r = rfa_retrieve_data (data);
- 
+
     int scb_status = inb(nic.io_base + CSR_STATUS);
     if ((scb_status & RUS_MASK) == RUS_SUSPEND)
-        e100_exec_cmd (CSR_COMMAND, RUC_RESUME); 
+        e100_exec_cmd (CSR_COMMAND, RUC_RESUME);
 
     return r;
 }
@@ -387,11 +387,11 @@ static void e100_init()
 
 	/* all interrupts to be disabled */
 	r = e100_exec_cmd(CSR_INT, 1);
-	printf("e100 CSR_INT ret=%d\n", r);
+	/* printf("e100 CSR_INT ret=%d\n", r); */
 
 	cbl_init();
 	rfa_init();
-	printf("rfa_init, page_index=%d\n", page_index);
+	/* printf("rfa_init, page_index=%d\n", page_index); */
 }
 
 int e100_attach(pci_pdata_t pd) {
