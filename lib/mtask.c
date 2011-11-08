@@ -117,8 +117,8 @@ void task_switch()
 	ptaskctl->now++;
 	if (ptaskctl->now == ptaskctl->running) {
 		ptaskctl->now = 0;
-	} 
-	
+	}
+
 	t = ptaskctl->taskring[ptaskctl->now];
 	farjmp(0, TASK_SEGNO(ptaskctl->now));
 }
