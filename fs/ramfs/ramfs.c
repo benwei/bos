@@ -22,6 +22,7 @@
 
 #include <types.h>
 #include <stdarg.h>
+#include <string.h>
 #include <malloc.h>
 #include <errno.h>
 #include <fs/fs.h>
@@ -73,7 +74,6 @@ static void ramfs_free_node(struct ramfs_node * node)
 
 static struct ramfs_node * ramfs_add_node(struct ramfs_node * node, char * name, enum vnode_type type)
 {
-    //printk("name %s\n",node->name);
 	struct ramfs_node *n, *prev;
 
 	n = ramfs_allocate_node(name, type);
@@ -84,20 +84,15 @@ static struct ramfs_node * ramfs_add_node(struct ramfs_node * node, char * name,
 	if(node->child == NULL)
 	{
 		node->child = n;
-        //printk("->%s\n",node->child->name);
 	}
 	else
 	{
 		prev = node->child;
-		//printk("==>%s\n",prev->name);
         while(prev->next != NULL)
         {
-		//	printk("in ==>%s\n",prev->name);
             prev = prev->next;
-            //printk("%s\n",prev->name);
         }
         prev->next = n;
-	    //printk("==>%s\n",prev->next->name);
     }
 
 	return n;
@@ -303,7 +298,6 @@ static s32_t ramfs_fsync(struct vnode * node, struct file * fp)
 
 static s32_t ramfs_readdir(struct vnode * node, struct file * fp, struct dirent * dir)
 {
-    printk("\nin readdifr\n");
 	struct ramfs_node *n, *dn;
 	s32_t i;
 
@@ -321,14 +315,12 @@ static s32_t ramfs_readdir(struct vnode * node, struct file * fp, struct dirent 
 	{
 		dn = node->v_data;
 		n = dn->child;
-		printk("=>%s\n",n->name);
         if(n == NULL)
 			return ENOENT;
 
 		for(i = 0; i != (fp->f_offset - 2); i++)
 		{
 			n = n->next;
-			//printk("->%s\n",n->name);
             if(n == NULL)
 				return ENOENT;
 		}
@@ -344,7 +336,6 @@ static s32_t ramfs_readdir(struct vnode * node, struct file * fp, struct dirent 
 	dir->d_namlen = (u16_t)strlen(dir->d_name);
 
 	fp->f_offset++;
-    printk("end dd\n");
 	return 0;
 }
 
@@ -382,7 +373,6 @@ static s32_t ramfs_lookup(struct vnode * dnode, char * name, struct vnode * node
 
 static s32_t ramfs_create(struct vnode * node, char * name, u32_t mode)
 {
-    //printk("in create\n");
 	struct ramfs_node * n;
 
 	if(!S_ISREG(mode))
@@ -393,7 +383,6 @@ static s32_t ramfs_create(struct vnode * node, char * name, u32_t mode)
 		return ENOMEM;
 
 	n->mode = mode & (S_IRWXU|S_IRWXG|S_IRWXO);
-    //printk("end create\n");
 	return 0;
 }   
 
@@ -458,7 +447,6 @@ static s32_t ramfs_rename(struct vnode * dnode1, struct vnode * node1, char * na
 
 static s32_t ramfs_mkdir(struct vnode * node, char * name, u32_t mode)
 {
-    //printk("in mkdir \n");
 	struct ramfs_node *n;
 
 	if(!S_ISDIR(mode))
@@ -470,7 +458,6 @@ static s32_t ramfs_mkdir(struct vnode * node, char * name, u32_t mode)
 
 	n->mode = mode & (S_IRWXU|S_IRWXG|S_IRWXO);
 	n->size = 0;
-    //printk("end\n");
 	return 0;
 }
 
