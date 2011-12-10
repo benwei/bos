@@ -8,7 +8,7 @@ OUTPUT_DIR=.
 include ./mk.defines
 
 # source files
-SHELL_SRC=$(wildcard kernel/*.c) $(shell ls lib/*.c) $(shell ls blibc/*.c) $(shell ls apps/*.c) $(shell ls fs/*.c) $(shell ls fs/vfs/*.c) $(shell ls fs/ramfs/*.c)
+SHELL_SRC=$(wildcard kernel/*.c) $(shell ls lib/*.c) $(shell ls blibc/*.c) $(shell ls apps/*.c)
 HW_DEP_ASM_SRC=kernel/main.s kernel/osfunc.s 
 
 # object files
@@ -29,7 +29,7 @@ COMM_FLAGS=-nostdlib
 COMM_LDFLAGS=--no-undefined -T $(LDSCRIPT) -Map $(SYSNAME).map 
 
 CFLAGS =$(MAC_CFLAGS) -I. -Iinclude -Iapps \
-	-Wall -fno-builtin -O0 -g
+	-Wall -Werror -fno-builtin -O0 -g
 
 ifeq ($(KNAME),$(KNAME_CYGWIN))
 # add some code for cygwin environment
