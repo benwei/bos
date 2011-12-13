@@ -8,7 +8,7 @@
 #include <string.h>
 #include <sizes.h>
 #include <malloc.h>
-#define CONFIG_HEAP_SIZE 16*1024*1024
+#define CONFIG_HEAP_SIZE 10*1024
 /*
  * internal variable used by brk/sbrk
  */

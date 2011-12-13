@@ -8,7 +8,8 @@ OUTPUT_DIR=.
 include ./mk.defines
 
 # source files
-SHELL_SRC=$(wildcard kernel/*.c) $(shell ls lib/*.c) $(shell ls lib/errno/*.c) $(shell ls blibc/*.c) $(shell ls apps/*.c) $(shell ls fs/*.c) $(shell ls fs/vfs/*.c) $(shell ls fs/ramfs/*.c)
+FS_SRC= $(shell ls fs/*.c) $(shell ls fs/vfs/*.c) $(shell ls fs/ramfs/*.c)
+SHELL_SRC=$(wildcard kernel/*.c) $(shell ls lib/*.c) $(shell ls lib/errno/*.c) $(shell ls blibc/*.c) $(shell ls apps/*.c) $(FS_SRC)
 HW_DEP_ASM_SRC=kernel/main.s kernel/osfunc.s 
 
 # object files
@@ -33,8 +34,9 @@ CFLAGS =$(MAC_CFLAGS) -I. -Iinclude -Iapps \
 
 ifeq ($(KNAME),$(KNAME_CYGWIN))
 # add some code for cygwin environment
+textAddr=1000
 CROSS_COMPILE=/usr/local/cross/bin/i586-elf-
-LDFLAGS = $(COMM_FLAGS) -static -e _start -s -Ttext 500 -Map $(SYSNAME).map 
+LDFLAGS = $(COMM_FLAGS) -static -e _start -s -Ttext $(textAddr) -Map $(SYSNAME).map 
 else
 ifeq ($(KNAME),$(KNAME_OSX))
 # add some code for osx environment
@@ -59,6 +61,7 @@ OBJCOPYFLAGS = \
 	-R .note -R .note.gnu.build-id -R .comment -S
 
 BOOT_LOADER=bootldr.elf 
+OS_LOADER=LOADER.BIN
 
 all: $(BOOT_LOADER) $(SYSBIN)
 
@@ -66,6 +69,9 @@ all: $(BOOT_LOADER) $(SYSBIN)
 # boot loader
 ########################
 $(BOOT_LOADER): boot/bootldr.s 
+	nasm -o $@ $< -I include
+
+$(OS_LOADER): loader/loader.s 
 	nasm -o $@ $< -I include
 
 ########################
@@ -88,7 +94,8 @@ package_by_mount: $(IMG_NAME) $(SYSBIN)
 	rm -rf fda;
 
 # I like this because use mcopy from mtools without root permission for packaging
-package: $(IMG_NAME) $(SYSBIN)
+package: $(OS_LOADER) $(IMG_NAME) $(SYSBIN)
+	mcopy -n -o -i "$(IMG_NAME)" "$(OS_LOADER)" ::
 	mcopy -n -o -i "$(IMG_NAME)" "$(SYSBIN)"  ::
 	mdir -i "$(IMG_NAME)"
 
@@ -125,5 +132,5 @@ info:
 	@echo "PLATFORM=[$(KNAME)]"
 
 clean:
-	rm -f $(IMG_NAME) *.elf *.img $(SYSBIN) *.o *.lst *.map $(KERN_OBJ) $(HW_DEP_ASM_OBJ) 
+	rm -f $(IMG_NAME) *.elf *.img $(SYSBIN) *.o *.lst *.map $(KERN_OBJ) $(HW_DEP_ASM_OBJ) $(OS_LOADER)
 	make -C test clean
