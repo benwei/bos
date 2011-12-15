@@ -58,22 +58,22 @@ OBJCOPYFLAGS = \
 	-O binary $(COMM_OBJCOPYFLAGS) \
 	-R .note -R .note.gnu.build-id -R .comment -S
 
-BOOT_LOADER=bootldr.elf 
+BOOT_LOADER=boot/boot.bin 
 
 all: $(BOOT_LOADER) $(SYSBIN)
 
 ########################
 # boot loader
 ########################
-$(BOOT_LOADER): boot/bootldr.s 
-	nasm -o $@ $< -I include
+$(BOOT_LOADER):
+	make -C boot
 
 ########################
 # bootable floppy image
 ########################
 $(IMG_NAME): $(BOOT_LOADER)
-	$(DD) if=$(OUTPUT_DIR)/bootldr.elf of=$@ seek=0 count=1
-	$(DD) if=/dev/zero of="$@" seek=1 count=2879
+	$(DD) if=$(BOOT_LOADER) of=$@ seek=0 count=1
+	$(DD) if=/dev/zero of="$@" skip=1 seek=1 bs=512 count=$$((2880 - 1))
 
 ########################
 # System binary
@@ -125,5 +125,6 @@ info:
 	@echo "PLATFORM=[$(KNAME)]"
 
 clean:
+	make -C boot clean
 	rm -f $(IMG_NAME) *.elf *.img $(SYSBIN) *.o *.lst *.map $(KERN_OBJ) $(HW_DEP_ASM_OBJ) 
 	make -C test clean
