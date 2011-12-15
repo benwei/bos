@@ -43,7 +43,7 @@ BS_DrvNum:      .byte  0                      #+36 BS_DrvNum:      Drive number 
                 .byte  0                      #+37 BS_Reserved1:   Reserved (used by WindowsNT) (= 0)
                 .byte  0x29                   #+38 BS_BootSig:     Boot signature (= 0x29) indicating the following 3 fields are present.
                 .int   0                      #+39 BS_VolID:       Volume serial number. (It is usually assigned with timestamp.)
-                .ascii "Dennis Chen"          #+43 BS_VolLab:      Volume label (11 bytes = 8 + 3). It's likely to use "NO NAME    " by default.
+                .ascii "BOS BootDsk"          #+43 BS_VolLab:      Volume label (11 bytes = 8 + 3). It's likely to use "NO NAME    " by default.
                 .ascii "FAT12   "             #+54 BS_FileSysType: File system type: "FAT12   ", "FAT16   ", or "FAT     "
                                               #+62
 .else
@@ -61,7 +61,7 @@ BS_DrvNum:      .byte  0                      #+64 BS_DrvNum:      Drive number 
                 .byte  0                      #+65 BS_Reserved1:   Reserved
                 .byte  0x29                   #+66 BS_BootSig:     Boot signature (= 0x29) indicating the following 3 fields are present.
                 .int   0                      #+67 BS_VolID:       Volume serial number. (It is usually assigned with timestamp.)
-                .ascii "Dennis Chen"          #+71 BS_VolLab:      Volume label (11 bytes = 8 + 3). It's likely to use "NO NAME    " by default.
+                .ascii "BOS BootDsk"          #+71 BS_VolLab:      Volume label (11 bytes = 8 + 3). It's likely to use "NO NAME    " by default.
                 .ascii "FAT12   "             #+82 BS_FileSysType: File system type: "FAT12   ", "FAT16   ", or "FAT     "
                                               #+90
 .endif
