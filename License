@@ -3,13 +3,13 @@
 
 # code from third party
 - Modified Code from Operating Systems Development Tutorial
--- boot/bootldr.s   -- Master Boot Record
 -- kernel/main.s    -- Modified base on Stage2.asm Stage2 Bootloader
 
 # Modified Code from the book 30 days Make OS
 - lib/*.c
 
 # BSD License from Ben's OS
+boot/ (contrib by Dennis) <br>
 apps/ <br>
 kernel/ <br>
 blibc/ <br>
