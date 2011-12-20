@@ -1,3 +1,5 @@
+include ../mk.defines
+
 TARGET         = boot.bin
 
 SRCS           = bpb.s     \

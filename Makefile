@@ -33,24 +33,14 @@ CFLAGS =$(MAC_CFLAGS) -I. -Iinclude -Iapps \
 
 ifeq ($(KNAME),$(KNAME_CYGWIN))
 # add some code for cygwin environment
-CROSS_COMPILE=/usr/local/cross/bin/i586-elf-
 LDFLAGS = $(COMM_FLAGS) -static -e _start -s -Ttext 500 -Map $(SYSNAME).map 
 else
-ifeq ($(KNAME),$(KNAME_OSX))
-# add some code for osx environment
-CROSS_COMPILE=/usr/local/gcc-4.5.2-for-linux64/bin/x86_64-pc-linux-
-endif
 
 LDFLAGS = \
 	$(COMM_FLAGS) -static -e _start \
 	$(COMM_LDFLAGS) -X 
 endif
 
-OBJCOPY = $(CROSS_COMPILE)objcopy
-CC = $(CROSS_COMPILE)gcc
-LD = $(CROSS_COMPILE)ld
-AR = $(CROSS_COMPILE)ar
-RANLIB = $(CROSS_COMPILE)ranlib
 
 COMM_OBJCOPYFLAGS=-R .pdr
 OBJCOPYFLAGS = \
