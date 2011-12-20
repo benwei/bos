@@ -3,6 +3,7 @@
 
 # code from third party
 - Modified Code from Operating Systems Development Tutorial
+-- loader/loader.s  -- Modified base on bootloader
 -- kernel/main.s    -- Modified base on Stage2.asm Stage2 Bootloader
 
 # Modified Code from the book 30 days Make OS

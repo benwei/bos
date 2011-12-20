@@ -185,7 +185,7 @@ _leave_scan_entry:
 	pop     %bx
 	ret
 
-str_kernel:    .ascii "MYOS    BIN\0"
+str_kernel:    .ascii "LOADER  BIN\0"
 
 #############################################
 #

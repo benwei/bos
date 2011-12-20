@@ -13,8 +13,6 @@ global _start
 ; Remember the memory map-- 0x500 through 0x7bff is unused above the BIOS data area.
 ; We are loaded at 0x500 (0x50:0)
 
-; org 0x500
-
 jmp	_start
 
 ;*******************************************************

@@ -8,7 +8,8 @@ OUTPUT_DIR=.
 include ./mk.defines
 
 # source files
-SHELL_SRC=$(wildcard kernel/*.c) $(shell ls lib/*.c) $(shell ls blibc/*.c) $(shell ls apps/*.c)
+FS_SRC= $(shell ls fs/*.c) $(shell ls fs/vfs/*.c) $(shell ls fs/ramfs/*.c)
+SHELL_SRC=$(wildcard kernel/*.c) $(shell ls lib/*.c) $(shell ls lib/errno/*.c) $(shell ls blibc/*.c) $(shell ls apps/*.c) $(FS_SRC)
 HW_DEP_ASM_SRC=kernel/main.s kernel/osfunc.s 
 
 # object files
@@ -29,11 +30,12 @@ COMM_FLAGS=-nostdlib
 COMM_LDFLAGS=--no-undefined -T $(LDSCRIPT) -Map $(SYSNAME).map 
 
 CFLAGS =$(MAC_CFLAGS) -I. -Iinclude -Iapps \
-	-Wall -Werror -fno-builtin -O0 -g
+	-Wall -fno-builtin -O0 -g
 
 ifeq ($(KNAME),$(KNAME_CYGWIN))
 # add some code for cygwin environment
-LDFLAGS = $(COMM_FLAGS) -static -e _start -s -Ttext 500 -Map $(SYSNAME).map 
+textAddr=1000
+LDFLAGS = $(COMM_FLAGS) -static -e _start -s -Ttext $(textAddr) -Map $(SYSNAME).map 
 else
 
 LDFLAGS = \
@@ -49,6 +51,7 @@ OBJCOPYFLAGS = \
 	-R .note -R .note.gnu.build-id -R .comment -S
 
 BOOT_LOADER=boot/boot.bin 
+OS_LOADER=LOADER.BIN
 
 all: $(BOOT_LOADER) $(SYSBIN)
 
@@ -57,6 +60,9 @@ all: $(BOOT_LOADER) $(SYSBIN)
 ########################
 $(BOOT_LOADER):
 	make -C boot
+
+$(OS_LOADER): loader/loader.s 
+	nasm -o $@ $< -I include
 
 ########################
 # bootable floppy image
@@ -78,7 +84,8 @@ package_by_mount: $(IMG_NAME) $(SYSBIN)
 	rm -rf fda;
 
 # I like this because use mcopy from mtools without root permission for packaging
-package: $(IMG_NAME) $(SYSBIN)
+package: $(OS_LOADER) $(IMG_NAME) $(SYSBIN)
+	mcopy -n -o -i "$(IMG_NAME)" "$(OS_LOADER)" ::
 	mcopy -n -o -i "$(IMG_NAME)" "$(SYSBIN)"  ::
 	mdir -i "$(IMG_NAME)"
 
@@ -116,5 +123,5 @@ info:
 
 clean:
 	make -C boot clean
-	rm -f $(IMG_NAME) *.elf *.img $(SYSBIN) *.o *.lst *.map $(KERN_OBJ) $(HW_DEP_ASM_OBJ) 
+	rm -f $(IMG_NAME) *.elf *.img $(SYSBIN) *.o *.lst *.map $(KERN_OBJ) $(HW_DEP_ASM_OBJ) $(OS_LOADER)
 	make -C test clean
