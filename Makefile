@@ -8,7 +8,8 @@ OUTPUT_DIR=.
 include ./mk.defines
 
 # source files
-SHELL_SRC=$(wildcard kernel/*.c) $(shell ls lib/*.c) $(shell ls blibc/*.c) $(shell ls apps/*.c)
+FS_SRC= $(shell ls fs/*.c) $(shell ls fs/vfs/*.c) $(shell ls fs/ramfs/*.c)
+SHELL_SRC=$(wildcard kernel/*.c) $(shell ls lib/*.c) $(shell ls lib/errno/*.c) $(shell ls blibc/*.c) $(shell ls apps/*.c) $(FS_SRC)
 HW_DEP_ASM_SRC=kernel/main.s kernel/osfunc.s 
 
 # object files
@@ -29,28 +30,19 @@ COMM_FLAGS=-nostdlib
 COMM_LDFLAGS=--no-undefined -T $(LDSCRIPT) -Map $(SYSNAME).map 
 
 CFLAGS =$(MAC_CFLAGS) -I. -Iinclude -Iapps \
-	-Wall -Werror -fno-builtin -O0 -g
+	-Wall -fno-builtin -O0 -g
 
 ifeq ($(KNAME),$(KNAME_CYGWIN))
 # add some code for cygwin environment
-CROSS_COMPILE=/usr/local/cross/bin/i586-elf-
-LDFLAGS = $(COMM_FLAGS) -static -e _start -s -Ttext 500 -Map $(SYSNAME).map 
+textAddr=1000
+LDFLAGS = $(COMM_FLAGS) -static -e _start -s -Ttext $(textAddr) -Map $(SYSNAME).map 
 else
-ifeq ($(KNAME),$(KNAME_OSX))
-# add some code for osx environment
-CROSS_COMPILE=/usr/local/gcc-4.5.2-for-linux64/bin/x86_64-pc-linux-
-endif
 
 LDFLAGS = \
 	$(COMM_FLAGS) -static -e _start \
 	$(COMM_LDFLAGS) -X 
 endif
 
-OBJCOPY = $(CROSS_COMPILE)objcopy
-CC = $(CROSS_COMPILE)gcc
-LD = $(CROSS_COMPILE)ld
-AR = $(CROSS_COMPILE)ar
-RANLIB = $(CROSS_COMPILE)ranlib
 
 COMM_OBJCOPYFLAGS=-R .pdr
 OBJCOPYFLAGS = \
@@ -58,22 +50,26 @@ OBJCOPYFLAGS = \
 	-O binary $(COMM_OBJCOPYFLAGS) \
 	-R .note -R .note.gnu.build-id -R .comment -S
 
-BOOT_LOADER=bootldr.elf 
+BOOT_LOADER=boot/boot.bin 
+OS_LOADER=LOADER.BIN
 
 all: $(BOOT_LOADER) $(SYSBIN)
 
 ########################
 # boot loader
 ########################
-$(BOOT_LOADER): boot/bootldr.s 
+$(BOOT_LOADER):
+	make -C boot
+
+$(OS_LOADER): loader/loader.s 
 	nasm -o $@ $< -I include
 
 ########################
 # bootable floppy image
 ########################
 $(IMG_NAME): $(BOOT_LOADER)
-	$(DD) if=$(OUTPUT_DIR)/bootldr.elf of=$@ seek=0 count=1
-	$(DD) if=/dev/zero of="$@" seek=1 count=2879
+	$(DD) if=$(BOOT_LOADER) of=$@ seek=0 count=1
+	$(DD) if=/dev/zero of="$@" skip=1 seek=1 bs=512 count=$$((2880 - 1))
 
 ########################
 # System binary
@@ -88,7 +84,8 @@ package_by_mount: $(IMG_NAME) $(SYSBIN)
 	rm -rf fda;
 
 # I like this because use mcopy from mtools without root permission for packaging
-package: $(IMG_NAME) $(SYSBIN)
+package: $(OS_LOADER) $(IMG_NAME) $(SYSBIN)
+	mcopy -n -o -i "$(IMG_NAME)" "$(OS_LOADER)" ::
 	mcopy -n -o -i "$(IMG_NAME)" "$(SYSBIN)"  ::
 	mdir -i "$(IMG_NAME)"
 
@@ -125,5 +122,6 @@ info:
 	@echo "PLATFORM=[$(KNAME)]"
 
 clean:
-	rm -f $(IMG_NAME) *.elf *.img $(SYSBIN) *.o *.lst *.map $(KERN_OBJ) $(HW_DEP_ASM_OBJ) 
+	make -C boot clean
+	rm -f $(IMG_NAME) *.elf *.img $(SYSBIN) *.o *.lst *.map $(KERN_OBJ) $(HW_DEP_ASM_OBJ) $(OS_LOADER)
 	make -C test clean

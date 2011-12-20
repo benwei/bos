@@ -7,7 +7,7 @@
 ;*********************************************
 
 bits	16						; we are in 16 bit real mode
-org		0					; we will set regisers later
+org	0x0						; we will set regisers later
 start:	jmp	main					; jump to start of bootloader
 
 ;*********************************************
@@ -137,15 +137,15 @@ ReadSectors:
 ;*********************************************
 ;	Bootloader Entry Point
 ;*********************************************
-
+%define IMAGE_LOAD_SEG 0x0100
 main:
 
      ;----------------------------------------------------
-     ; code located at 0000:7C00, adjust segment registers
+     ; code located at 0000:0500, adjust segment registers
      ;----------------------------------------------------
      
           cli						; disable interrupts
-          mov     ax, 0x07C0				; setup registers to point to our segment
+          mov     ax, 0x0050				; setup registers to point to our segment
           mov     ds, ax
           mov     es, ax
           mov     fs, ax
@@ -190,7 +190,7 @@ main:
           mov     WORD [datasector], ax                 ; base of root directory([datasector] = 19)
           add     WORD [datasector], cx			; [datasector] = 19 + 14 = 33
           
-     ; read root directory into memory (7C00:0200)
+     ; read root directory into memory (0500:0200)
      
           mov     bx, 0x0200                            ; copy root dir above bootcode
           call    ReadSectors
@@ -239,14 +239,14 @@ main:
 
           mov     ax, WORD [bpbReservedSectors]       ; adjust for bootsector
           
-     ; read FAT into memory (7C00:0200)
+     ; read FAT into memory (0500:0200)
 
           mov     bx, 0x0200                          ; copy FAT above bootcode
           call    ReadSectors
 
-     ; read image file into memory (0050:0000)
+     ; read image file into memory (0100:0000)
      
-          mov     ax, 0x0050
+          mov     ax, IMAGE_LOAD_SEG
           mov     es, ax                              ; destination for image
           mov     bx, 0x0000                          ; destination for image
           push    bx
@@ -294,33 +294,10 @@ main:
           jb      LOAD_IMAGE
           
      DONE:
-
-	  mov	  ax, 0x1000
-	  mov     es, ax
-	  mov     cx, 2    ; read 32 sectors
-	  mov	  ax, 19   ; starting sector
-	  mov     bx, 0    ; to 0x10000
-          call    ReadSectors
-%if 0
-	; backup the FAT    
-	; ES
-	  mov	  cx, word [fatsize]
-	  mov	  si, 0x0200
-	  mov	  ax, 0x1000
-	  mov     es, ax
-	  mov	  di, 0 
-	.loopfatmove:
-	  lodsb
-	  stosb
-	  loop .loopfatmove
-	  mov     di, 0
-	  mov	  ax, word [fatsize]
-	  stosw
-%endif
- 
           mov     si, msgCRLF
           call    Print
-          push    WORD 0x0050
+	  
+          push    WORD IMAGE_LOAD_SEG
           push    WORD 0x0000
           retf
           
@@ -336,10 +313,8 @@ main:
      datasector  dw 0x0000
      cluster     dw 0x0000
      ImageName   db "MYOS    BIN"
-     msgLoading  db 0x0D, 0x0A, "Loading Boot Image ", 0x00
-     msgCRLF     db 0x0D, 0x0A, 0x00
+     msgLoading  db 0x0D, 0x0A, "Loading Kernel ", 0x00
+     msgCRLF     db 0x0D, 0x0A, "Done", 0x00
      msgProgress db ".", 0x00
-     msgFailure  db 0x0D, 0x0A, "MISSING OS. Hit Any Key to Reboot", 0x0D, 0x0A, 0x00
+     msgFailure  db 0x0D, 0x0A, "NO OS. Hit Any Key to Reboot", 0x0D, 0x0A, 0x00
      
-          TIMES 510-($-$$) DB 0
-          DW 0xAA55

@@ -3,8 +3,7 @@ OUTPUT_ARCH(i386)
 ENTRY(_start)
 SECTIONS
 {
-	. = 0x00000500;
-
+	. = 0x00001000;
 	. = ALIGN(4);
 	.text : 
 	{ 	kernel/main.o (.text)
