@@ -15,6 +15,7 @@
 #include "keymap.h"
 #include "memory.h"
 #include "net.h"
+#include "malloc.h"
 
 static int key_shift = 0;
 static int key_caps  = 0;
@@ -69,6 +70,17 @@ void dump_e820(struct session *s)
 			 msg, e->type);
 	}
 	s->cons->y+= i;
+}
+
+void command_test(struct session *s)
+{
+	new_line(s);
+	int *i = (int *)malloc(sizeof(int));
+        if (i) {
+		printf("test malloc %x\n", i);
+	}
+
+	s->cons->y++;
 }
 
 void command_free(struct session *s)
@@ -197,6 +209,7 @@ static cmdtable command_table[] = {
 	{"scroll", 6, &command_scroll,"scroll testing" },
 	{"netsend",7, &command_net_tx,"test ethernet send" },
 	{"net",    3, &command_net,   "list ethernet info" },
+	{"test",   4, &command_test,   "test vfs info" },
 	{"", 0, NULL}
 };
 

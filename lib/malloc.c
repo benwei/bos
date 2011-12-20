@@ -8,12 +8,14 @@
 #include <string.h>
 #include <sizes.h>
 #include <malloc.h>
-#define CONFIG_HEAP_SIZE 10*1024
+#define CONFIG_HEAP_SIZE 100*1024
 /*
  * internal variable used by brk/sbrk
  */
-static char heap[CONFIG_HEAP_SIZE] __attribute__((used, __section__(".heap")));
-static char * __current_brk = &heap[0];
+//static char heap[CONFIG_HEAP_SIZE] __attribute__((used, __section__(".heap")));
+#define HEAD_ADDR (char *)0x003a7000
+static char *heap = HEAD_ADDR;
+static char *__current_brk = HEAD_ADDR;//heap;
 
 /*
  * p is an address, a is alignment; must be a power of 2
