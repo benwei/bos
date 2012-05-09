@@ -66,18 +66,16 @@ void print_tf(struct trapframe *tf)
 
 struct task *get_now_task(void);
 
+
 int trap_handler(struct trapframe *tf)
 {
 	switch(tf->trapno) {
 	case TRAP_SYSCALL:
 		print_tf(tf);
-		if (tf->regs.eax == BSYS_PUTS) {
-			do {
-			struct task *t = get_now_task();
-			printf("task_id(%d) syscall(BSYS_PUTS,a2=%d),a1: %s\n", t->pid, tf->regs.ecx, tf->regs.edx);
-			} while(0);
-		}
-		return 101;
+
+		return kern_syscall(tf->regs.eax, 
+			     tf->regs.edx,
+			     tf->regs.ecx);
 		break;
 	default:
 		print_tf(tf);
