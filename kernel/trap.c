@@ -2,7 +2,7 @@
 #include "os_sys.h"
 #include "stdio.h"
 #include "trap.h"
-#include "user/syscall.h"
+#include "syscall.h"
 #include "os_mtask.h"
 
 static void panic(const char *msg) {
