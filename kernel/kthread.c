@@ -36,19 +36,12 @@ void thread_lazyman_sleep(int task_id)
 	struct FIFO32 fifo;
 	struct TIMER *tsw;
 	int i, fifobuf[128];
-	console kb_cons;
-	struct session sc;
-	memset(&kb_cons, 0, sizeof(console));
-	memset(&sc, 0, sizeof(struct session));
-	sc.cons = &kb_cons;
-	kb_cons.x = 0; kb_cons.y = 5;
-	move_cursor(kb_cons.x,kb_cons.y);
 
 	fifo32_init(&fifo, 128, fifobuf);
 	tsw = timer_alloc();
 	timer_init(tsw, &fifo, 1);
 	timer_settime(tsw, 2);
-	// printf("%s started(pid=%d)\n", (void *) __FUNCTION__, (void *) task_id);
+
 	for (;;) {
 		update_mtime_by_pid(task_id, 1);
 		asm_cli();
@@ -72,11 +65,10 @@ void thread_kb_io(int task_id)
 	struct TIMER *tsw;
 	int i, fifobuf[128];
 	console kb_cons;
-	memset(&kb_cons, 0, sizeof(console));
 	struct session sc;
 	memset(&sc, 0, sizeof(struct session));
-	sc.cons = &kb_cons;
-	kb_cons.x = 0; kb_cons.y = 6;
+	sc.cons = cons_init(&kb_cons);
+	kb_cons.x = 0; kb_cons.y = 8;
 
 	fifo32_init(&fifo, 128, fifobuf);
 	tsw = timer_alloc();

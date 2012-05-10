@@ -5,13 +5,7 @@
 
 #define MAX_CMD_BUF_SIZE 80
 
-typedef struct console_st {
-	unsigned int vmem_addr;
-	unsigned int vmem_current;
-	unsigned int vmem_max;
-	int x; /* cursor x postion */
-	int y; /* cursor y postion */
-} console;
+#include "console.h"
 
 struct session {
 	int buflen;

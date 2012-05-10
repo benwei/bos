@@ -421,7 +421,8 @@ int kb_input_handling (struct session *s, int c)
 	}
 
 	if (s->cons->y >= 24) {
-		s->cons->y = 0;
+		scrollup(s->cons->y - 24);
+		s->cons->y = 24;
 	}
 	return 0;
 }
