@@ -69,6 +69,9 @@ k_cons_putc(console *c, unsigned char ch) {
 		}
 		break;
 	default:
+		if (c->vmem_current >= c->vmem_max) {
+			scrollup(1);
+		}
 		*((unsigned char *) c->vmem_current) = ch;
 		c->vmem_current+=2;
 	}
@@ -98,7 +101,7 @@ scrollup(unsigned int linenum)
 
 	cons_act->vmem_current = cons_act->vmem_max - offset;
 
-	for (s = pend; s > (char *) cons_act->vmem_current; s-=2) {
+	for (s = pend; s >= (char *) cons_act->vmem_current; s-=2) {
 		*s = ' ';
 	} 
 }

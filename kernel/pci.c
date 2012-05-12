@@ -182,7 +182,7 @@ static int _lspci(pci_pdata_t dev)
 {
 	int i = 0;
 	for (;i < dev_count; i++) {
-		printf("\n%02x:%02x.%d vendor:%04x,devid:%04x,class:%04xh(%s)",
+		printf("%02x:%02x.%d vendor:%04x,devid:%04x,class:%04xh(%s)",
 		   dev->busno, dev->slot, dev->func,
 		   dev->vendor,dev->device,
 		   dev->class_code, get_pci_class_string(dev->class_code)
@@ -191,7 +191,7 @@ static int _lspci(pci_pdata_t dev)
 		   printf(",r%x", dev->revid);
 		}
 		printf(",t%d", dev->hdrtype);
-		printf(",irq%d", dev->irq_line);
+		printf(",irq%d\n", dev->irq_line);
 		dev++;
 	}
 	return dev_count;

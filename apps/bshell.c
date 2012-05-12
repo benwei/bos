@@ -126,6 +126,9 @@ void hexdump(struct session *s, const char *addr , int len)
 	printf("%08x ", (int) addr);
 	for (; i > 0; --i, ++p) {
 		printf("%02x ", *p);
+		if (i == 9) {
+			putc(' ');
+		}
 	}
 	p = addr;
 	for (; len > 0; --len, ++p) {
@@ -133,7 +136,7 @@ void hexdump(struct session *s, const char *addr , int len)
 		if ( ('0' <= c && c <= '9') ||
 		     ('a' <= c && c <= 'z') ||
 		     ('A' <= c && c <= 'Z') || c == ' ') {
-			printf("%c", &c);
+			putc(c);
 		} else {
 			printf(".");
 		}
@@ -147,20 +150,16 @@ void command_type(struct session *s)
 	unsigned long tadr = strtoul(arg, NULL, 16);
 	const char *p = (const char *) tadr;
 
-	printf("type command %p\n", tadr);
-
-	s->cons->y++;
 	for  (; i < 16; i++) {
-		printf('\n');
 		hexdump(s, p, 16);
 		p+=16;
+		putc('\n');
 	}
 }
 
 void command_lspci(struct session *s)
 {
-	int r = lspci();
-	s->cons->y+=r;
+	lspci();
 }
 
 
