@@ -9,8 +9,16 @@ typedef struct console_st {
 	int y; /* cursor y postion */
 } console;
 
-extern console *cons_init(console *c); 
+extern void
+cons_init(void); 
 
-extern void scrollup(unsigned int linenum);
+extern void
+cons_setpos(unsigned int x, unsigned int y);
+
+void
+cons_clear(void);
+
+extern void
+cons_putc(unsigned char c); 
 
 #endif /* CONSOLE_H */

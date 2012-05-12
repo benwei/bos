@@ -7,17 +7,29 @@ OUTPUT_DIR=.
 # defines for global use
 include ./mk.defines
 
+ARCH=i386
+include mk.$(ARCH)
+KERN_INCS = $(ARCH_INCS)
+KERN_INCS +=-Iinclude
+
 # source files
 FS_SRC= $(shell ls fs/*.c) $(shell ls fs/vfs/*.c) $(shell ls fs/ramfs/*.c)
-SHELL_SRC=$(wildcard kernel/*.c) $(shell ls lib/*.c) $(shell ls lib/errno/*.c) $(shell ls blibc/*.c) $(shell ls apps/*.c) $(FS_SRC)
+KERN_SRC = $(wildcard kernel/*.c) 
+SHELL_SRC= $(shell ls lib/*.c) $(shell ls lib/errno/*.c) $(shell ls blibc/*.c) $(shell ls apps/*.c) $(FS_SRC)
 HW_DEP_ASM_SRC=kernel/main.s kernel/osfunc.s 
 
 # object files
-KERN_OBJ = $(SHELL_SRC:.c=.o)
+KERN_OBJS += $(KERN_SRC:.c=.o)
+KERN_OBJS += $(SHELL_SRC:.c=.o)
+KERN_OBJS += $(ARCH_OBJS)
+
 HW_DEP_ASM_OBJ = $(HW_DEP_ASM_SRC:.s=.o)
+
 
 NASMW = nasm
 LDSCRIPT := ld-script.lds
+
+
 
 ifeq ($(KNAME),$(KNAME_OSX))
 NASMW_LDFLAGS = -f elf
@@ -28,8 +40,7 @@ endif
 
 COMM_FLAGS=-nostdlib
 COMM_LDFLAGS=--no-undefined -T $(LDSCRIPT) -Map $(SYSNAME).map 
-
-CFLAGS =$(MAC_CFLAGS) -I. -Iinclude -Iapps \
+CFLAGS =$(MAC_CFLAGS) -I. $(KERN_INCS) -Iapps \
 	-Wall -fno-builtin -O0 -g
 
 ifeq ($(KNAME),$(KNAME_CYGWIN))
@@ -112,7 +123,7 @@ MYOS.BIN: %.BIN: myos.elf ld-script.lds
 	@echo "convert $< to $@"
 	$(OBJCOPY) $(OBJCOPYFLAGS) $< $@
 
-myos.elf: $(HW_DEP_ASM_OBJ) $(KERN_OBJ)
+myos.elf: $(HW_DEP_ASM_OBJ) $(KERN_OBJS)
 	$(LD) $(LDFLAGS) -o $@ $^
 
 $(HW_DEP_ASM_OBJ) : %.o : %.s
@@ -123,5 +134,6 @@ info:
 
 clean:
 	make -C boot clean
-	rm -f $(IMG_NAME) *.elf *.img $(SYSBIN) *.o *.lst *.map $(KERN_OBJ) $(HW_DEP_ASM_OBJ) $(OS_LOADER)
+	rm -f $(IMG_NAME) *.elf *.img $(SYSBIN) *.o *.lst *.map $(KERN_OBJS) $(HW_DEP_ASM_OBJ) $(OS_LOADER)
 	make -C test clean
+

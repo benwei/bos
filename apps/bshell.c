@@ -69,38 +69,30 @@ void dump_e820(struct session *s)
 			 e->len_high, e->len_low,
 			 msg, e->type);
 	}
-	s->cons->y+= i;
 }
 
 void command_test(struct session *s)
 {
-	new_line(s);
 	int *i = (int *)malloc(sizeof(int));
         if (i) {
 		printf("test malloc %x\n", i);
 	}
 
-	s->cons->y++;
 }
 
 void command_free(struct session *s)
 {
 	int freemem = memman_total((struct MEMMAN *) MEMMAN_ADDR);
-	new_line(s);
 	dump_e820(s);
 	printf("Free/Total: %d/%d MB\n",
 		MEM_MB(freemem), MEM_MB(mem_upbound_size));
-	s->cons->y++;
 }
 
-#define STR_PROMPT "bos$"
+#define STR_PROMPT "bos$ "
 
 static inline void show_prompt(struct session *s, const char *prompt)
 {
-	new_line(s);
 	puts(prompt);
-	s->cons->x+=strlen(prompt) + 1;
-	screen_setcursor(s->cons->x, s->cons->y);
 }
 
 void command_ps(struct session *s)
@@ -111,24 +103,19 @@ void command_ps(struct session *s)
 		t = &ptaskctl->tasks[i];
 		if (t->flag == TASK_RUN) {
 			int pid = getpid_from_task(t);
-			new_line(s);
 			printf("%d %s - running %d\n", pid, t->processname, getmtime_by_pid(pid));
-			s->cons->y++;
 		}
 	}
 }
 
 void command_clear(struct session *s)
 {
-	clrscr();
-	s->cons->y=0;
+	clear_screen();
 }
 
 void command_uname(struct session *s)
 {
-	new_line(s);
 	printf("BenOS "BOS_VERSION"\n");
-	s->cons->y++;
 }
 
 void hexdump(struct session *s, const char *addr , int len)
@@ -160,15 +147,13 @@ void command_type(struct session *s)
 	unsigned long tadr = strtoul(arg, NULL, 16);
 	const char *p = (const char *) tadr;
 
-	new_line(s);
 	printf("type command %p\n", tadr);
 
 	s->cons->y++;
 	for  (; i < 16; i++) {
-		new_line(s);
+		printf('\n');
 		hexdump(s, p, 16);
 		p+=16;
-		s->cons->y++;
 	}
 }
 
@@ -180,9 +165,10 @@ void command_lspci(struct session *s)
 
 
 void command_scroll(struct session *s) {
-	int lineup = 1;
-	int pos = MAX_COLS * lineup;
-	screen_scrollto(pos);
+	/* int lineup = 1;
+	 int pos = MAX_COLS * lineup;
+	 screen_scrollto(pos); */
+	printf("not impelemted.\n");
 }
 
 void command_net(struct session *s);
@@ -216,12 +202,10 @@ static cmdtable command_table[] = {
 static void
 command_help(struct session *s)
 {
-	new_line(s);
 	cmdtable *pc = command_table;
 	while (pc->len != 0) {
 		printf( "%9s - %s\n", pc->cmd, pc->desc);
 		pc++;
-		s->cons->y++;
 	}
 }
 
@@ -245,28 +229,21 @@ get_commandhandler(const char *buf)
 void command_exec(struct session *s)
 {
 	cmdtable *c = NULL;
-	s->cons->x=0;
-	s->cons->y++;
-	if (s->buflen == 0) {
-		; /* new line */
-	} else if ((c = get_commandhandler(s->buf)) != NULL) {
-		c->pfunc(s);
-	} else {
-		new_line(s);
-		printf("invalid command\n");
-		s->cons->y++;
+	putc('\n');
+	if (s->buflen) {
+		if (s->buflen
+			&& (c = get_commandhandler(s->buf)) != NULL) {
+			c->pfunc(s);
+		} else {
+			printf("invalid command\n");
+		}
 	}
-
-	// display prompt string bos$
-	s->cons->x = 0;
 	show_prompt(s, STR_PROMPT);
 }
 
 void bshell_init(struct session *s, int task_id)
 {
-	move_cursor(s->cons->x,s->cons->y);
 	//printf("%s started(pid=%d)\n", "bshell", (void *) task_id);
-	s->cons->y++;
 	show_prompt(s, STR_PROMPT);
 }
 
@@ -280,12 +257,7 @@ int key_ctrl = 0;
 
 static void printf_scancode(struct session *s, int c)
 {
-	move_cursor(s->cons->x,s->cons->y);
-	clearline();
-	move_cursor(s->cons->x,s->cons->y);
 	printf("code:%x\n", (void *) c, NULL);
-	s->cons->x= 0;
-	s->cons->y++;
 }
 
 /* key's scan code with e0 */
@@ -308,7 +280,7 @@ void control_key_handling(struct session *s, int c)
 		s->buflen = s->prevbuflen;
 		strcpy(s->buf, s->prevbuf);
 		s->buf[s->buflen] = 0;
-		printf(" %s", s->buf);
+		printf("%s", s->buf);
 	break;
 	case KEY_LEFT:
 		printf("KEY_LEFT\n");
@@ -389,10 +361,7 @@ int kb_input_handling (struct session *s, int c)
 			if (c == KEY_BS) { /* process backspace key */
 				if (s->buflen > 0) {
 					s->buf[--s->buflen] = '\0';
-					s->cons->x--;
-					char *scr = (char *)0xB8000;
-					*(scr+(s->cons->y*80+s->cons->x)*2) = ' ';
-					screen_setcursor(s->cons->x,s->cons->y);
+					putc('\b');
 				}
 			} else if (c == KEY_ENTER) {
 				s->buf[s->buflen] = 0;
@@ -402,8 +371,7 @@ int kb_input_handling (struct session *s, int c)
 				s->buflen = 0;
 				s->buf[0] = 0;
 			} else if (ch != 0) {
-				move_cursor(s->cons->x,s->cons->y);
-				putc(ch); s->cons->x++;
+				putc(ch);
 				if (s->buflen < MAX_CMD_BUF_SIZE - 1) {
 					s->buf[s->buflen++] = ch;
 				}
@@ -415,15 +383,6 @@ int kb_input_handling (struct session *s, int c)
 		}
 	}
 
-	if (s->cons->x > 79) {
-		s->cons->x = 0;
-		s->cons->y++;
-	}
-
-	if (s->cons->y >= 24) {
-		scrollup(s->cons->y - 24);
-		s->cons->y = 24;
-	}
 	return 0;
 }
 

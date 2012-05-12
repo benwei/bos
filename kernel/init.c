@@ -80,6 +80,7 @@ void _benmain(void)
 	struct TIMER *timer;
 	fifo32_init(&fifo, 128, keybuf);
 	struct TSS32 tss_a, tss_c;
+	cons_init();
 	env_init();
 
 	/* keyboard setting */

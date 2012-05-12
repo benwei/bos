@@ -3,6 +3,7 @@
 #include "os_keyboard.h"
 #include "os_bits.h"
 #include "string.h"
+#include "console.h"
 
 /************************************************************
 * api for string processing
@@ -88,7 +89,11 @@ void putchar(char c)
 
 void puts(const char *s)
 {
-	_cputs(s);
+	/* use console api
+ 	* _cputs(s); 
+ 	*/
+	for (;*s != 0 ; s++)
+		cons_putc(*s);	
 }
 
 #else
@@ -131,9 +136,7 @@ void puts(char *s)
 
 void putc(unsigned char c)
 {
-	char str[2] = {0};
-	str[0] = c;
-	puts(str);
+	cons_putc(c);
 }
 
 unsigned getc(void)

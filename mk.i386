@@ -1,0 +1,5 @@
+
+ARCH_SRC = $(shell find arch/i386/lib/*.c)
+ARCH_INCS = -Iarch/
+ARCH_OBJS = $(ARCH_SRC:.c=.o)
+

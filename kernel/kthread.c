@@ -64,11 +64,8 @@ void thread_kb_io(int task_id)
 	struct FIFO32 fifo;
 	struct TIMER *tsw;
 	int i, fifobuf[128];
-	console kb_cons;
 	struct session sc;
 	memset(&sc, 0, sizeof(struct session));
-	sc.cons = cons_init(&kb_cons);
-	kb_cons.x = 0; kb_cons.y = 8;
 
 	fifo32_init(&fifo, 128, fifobuf);
 	tsw = timer_alloc();
