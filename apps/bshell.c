@@ -164,6 +164,10 @@ void command_lspci(struct session *s)
 
 void user_div_zero(void);
 
+void command_ud2() {
+	__asm __volatile("ud2");	
+}
+
 void command_divzero(struct session *s) {
 	user_div_zero();
 }
@@ -189,7 +193,8 @@ static cmdtable command_table[] = {
 	{"uname",  5, &command_uname, "show system info" },
 	{"type ",  5, &command_type,  "type memory info" },
 	{"lspci",  5, &command_lspci, "list pci info" },
-	{"divzero",7, &command_divzero,"scroll testing" },
+	{"divzero",7, &command_divzero,"idt testing" },
+	{"ud2",    3, &command_ud2,   "idt testing" },
 	{"netsend",7, &command_net_tx,"test ethernet send" },
 	{"net",    3, &command_net,   "list ethernet info" },
 	{"test",   4, &command_test,   "test vfs info" },
