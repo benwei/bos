@@ -48,6 +48,7 @@ void farjmp(int eip, int cs);
 #define AR_CODE32_ER	0x409a
 #define AR_TSS32	0x0089
 #define AR_INTGATE32	0x008e 
+#define AR_I386GATE32	0x008e
 
 /* for memory.c */
 int io_load_eflags(void);

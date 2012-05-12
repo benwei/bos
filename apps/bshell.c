@@ -162,12 +162,10 @@ void command_lspci(struct session *s)
 	lspci();
 }
 
+void user_div_zero(void);
 
-void command_scroll(struct session *s) {
-	/* int lineup = 1;
-	 int pos = MAX_COLS * lineup;
-	 screen_scrollto(pos); */
-	printf("not impelemted.\n");
+void command_divzero(struct session *s) {
+	user_div_zero();
 }
 
 void command_net(struct session *s);
@@ -191,7 +189,7 @@ static cmdtable command_table[] = {
 	{"uname",  5, &command_uname, "show system info" },
 	{"type ",  5, &command_type,  "type memory info" },
 	{"lspci",  5, &command_lspci, "list pci info" },
-	{"scroll", 6, &command_scroll,"scroll testing" },
+	{"divzero",7, &command_divzero,"scroll testing" },
 	{"netsend",7, &command_net_tx,"test ethernet send" },
 	{"net",    3, &command_net,   "list ethernet info" },
 	{"test",   4, &command_test,   "test vfs info" },

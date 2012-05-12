@@ -1,8 +1,10 @@
 /* GDT and IDT descriptor table */
 
 #include "os_sys.h"
+#include "trap.h"
 
 #define SEG_NUM 1
+
 
 void init_gdtidt(void)
 {
@@ -28,8 +30,16 @@ void init_gdtidt(void)
 	load_idt(LIMIT_IDT, ADR_IDT);
 
 	/* setup interrupt handler */
-	// keyboard/irq1 SEN_NUM left shift 3. because the bit 0, 1, 2 should be zero
+
+	
+	for (i = 0; i < 20; i++) {
+		set_gatedesc(idt + i, (int) trap_handlers[i], OS_KERN_CS, AR_I386GATE32);
+	}
+
+	/* keyboard/irq1 SEN_NUM left shift 3. because the bit 0, 1, 2 should be zero */
+	/* for timer interrupt */
 	set_gatedesc(idt + 0x20, (int) asm_inthdr20, SEG_NUM * 8, AR_INTGATE32);
+	/* for keyboard interrupt */
 	set_gatedesc(idt + 0x21, (int) asm_inthdr21, SEG_NUM * 8, AR_INTGATE32);
 	// set_gatedesc(idt + 0x27, (int) asm_inthdr27, SEG_NUM * 8, AR_INTGATE32);
 	// set_gatedesc(idt + 0x2c, (int) asm_inthdr2c, SEG_NUM * 8, AR_INTGATE32);

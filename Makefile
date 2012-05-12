@@ -13,6 +13,7 @@ KERN_INCS = $(ARCH_INCS)
 KERN_INCS +=-Iinclude
 
 # source files
+USER_SRC= $(shell ls user/*.c) 
 FS_SRC= $(shell ls fs/*.c) $(shell ls fs/vfs/*.c) $(shell ls fs/ramfs/*.c)
 KERN_SRC = $(wildcard kernel/*.c) 
 SHELL_SRC= $(shell ls lib/*.c) $(shell ls lib/errno/*.c) $(shell ls blibc/*.c) $(shell ls apps/*.c) $(FS_SRC)
@@ -20,11 +21,11 @@ HW_DEP_ASM_SRC=kernel/main.s kernel/osfunc.s
 
 # object files
 KERN_OBJS += $(KERN_SRC:.c=.o)
-KERN_OBJS += $(SHELL_SRC:.c=.o)
 KERN_OBJS += $(ARCH_OBJS)
+KERN_OBJS += $(SHELL_SRC:.c=.o)
+KERN_OBJS += $(USER_SRC:.c=.o)
 
 HW_DEP_ASM_OBJ = $(HW_DEP_ASM_SRC:.s=.o)
-
 
 NASMW = nasm
 LDSCRIPT := ld-script.lds
@@ -102,7 +103,7 @@ package: $(OS_LOADER) $(IMG_NAME) $(SYSBIN)
 
 run: package
 	@#only support in well-setup Ubuntu and OSX(only tried 10.6.8)
-	make -C test IMG_NAME="../$(IMG_NAME)"
+	make -C test IMG_NAME="../$(IMG_NAME)" QEMUEXTRA=$(QEMUEXTRA)
 
 bin: $(SYSBIN)
 hex:

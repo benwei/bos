@@ -210,7 +210,6 @@ load_gdt:
 	lgdt [ESP+6]
 	ret
 
-
 io_load_eflags:	; int io_load_eflags(void);
 	pushfd		; push eflags 
 	pop		eax

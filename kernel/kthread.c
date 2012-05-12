@@ -66,7 +66,6 @@ void thread_kb_io(int task_id)
 	int i, fifobuf[128];
 	struct session sc;
 	memset(&sc, 0, sizeof(struct session));
-
 	fifo32_init(&fifo, 128, fifobuf);
 	tsw = timer_alloc();
 	timer_init(tsw, &fifo, 1);
