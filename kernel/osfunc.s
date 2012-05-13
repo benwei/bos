@@ -398,9 +398,6 @@ IDT_HANDLER_NOERR handler_254,254
 IDT_HANDLER_NOERR handler_255,255
 
 _all_trap_handler:
-	;push es
-	;push ds
-	;pushal
 	push eax
 	push edx
 	push ecx
@@ -409,9 +406,6 @@ _all_trap_handler:
 	call trap_handler
 	add  esp, 4
 
-	;popal
-	;pop ds
-	;pop es
 	pop ecx
 	pop edx 
 	add esp, 4 ; no pop eax for return code
