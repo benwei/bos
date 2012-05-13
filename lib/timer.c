@@ -88,11 +88,25 @@ void timer_settime(struct TIMER *timer, unsigned int timeout)
 	}
 }
 
+unsigned long global_system_ticks = 0;
+
+unsigned long sys_get_ticks()
+{
+	return global_system_ticks;
+}
+
+int task_schedule_counter = 0;
+
 void _inthdr20(int *esp)
 {
 	struct TIMER *timer;
 	outb(PIC0_OCW2, 0x60);
+	global_system_ticks++;
 	timerctl.count++;
+	if (task_schedule_counter++ > 10) {
+		task_schedule();
+		task_schedule_counter = 0;
+	}
 	if (timerctl.next > timerctl.count) {
 		return;
 	}

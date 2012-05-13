@@ -42,7 +42,7 @@ struct TIMER *mt_timer;
 
 void task_init(struct MEMMAN *memman);
 int task_create(int func, struct MEMMAN *memman, const char *name, int active);
-void task_switch();
+void task_schedule();
 void task_run(struct task *t, int priority);
 int task_getstate(struct task *t);
 

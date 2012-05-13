@@ -131,7 +131,7 @@ void task_setstate(struct task *t, int state)
 	t->flag = state;
 }
 
-void task_switch()
+void task_schedule()
 {
 	struct task *t;
 

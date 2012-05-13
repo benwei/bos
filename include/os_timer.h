@@ -21,4 +21,6 @@ void timer_init(struct TIMER *timer, struct FIFO32 *fifo, int data);
 void timer_settime(struct TIMER *timer, unsigned int timeout);
 void inthandler20(int *esp);
 
+unsigned long sys_get_ticks();
+
 #endif /* __OS_TIMER_H__ */

@@ -17,6 +17,7 @@
 #include "net.h"
 #include "malloc.h"
 #include "os_mtask.h"
+#include "os_timer.h"
 
 static int key_shift = 0;
 static int key_caps  = 0;
@@ -176,6 +177,11 @@ void command_divzero(struct session *s)
 	user_div_zero();
 }
 
+void command_ticks()
+{
+	printf("ticks: %d\n", sys_get_ticks());
+}
+
 int hello_main(void);
 void command_hello(struct session *s)
 {
@@ -213,11 +219,10 @@ static cmdtable command_table[] = {
 	{"run",    3, &command_run,   "run events" },
 	{"netsend",7, &command_net_tx,"test ethernet send" },
 	{"net",    3, &command_net,   "list ethernet info" },
-	{"test",   4, &command_test,   "test vfs info" },
+	{"test",   4, &command_test,  "test vfs info" },
+	{"ticks",  5, &command_ticks,  "get ticks" },
 	{"", 0, NULL}
 };
-
-
 
 static void
 command_help(struct session *s)

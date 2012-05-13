@@ -68,6 +68,7 @@ int trap_handler(struct trapframe *tf)
 	switch(tf->trapno) {
 	case TRAP_SYSCALL:
 		print_tf(tf);
+		//panic("panic: system halt");
 		return 101;
 		break;
 	default:

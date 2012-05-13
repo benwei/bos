@@ -43,7 +43,6 @@ void thread_lazyman_sleep(int task_id)
 			i = fifo32_get(&fifo);
 			asm_sti();
 			if (i == 1) {
-				task_switch();
 				timer_settime(tsw, 2);
 			}
 		}
@@ -54,14 +53,10 @@ void thread_lazyman_sleep(int task_id)
 void thread_kb_io(int task_id)
 {
 	struct FIFO32 fifo;
-	struct TIMER *tsw;
 	int i, fifobuf[128];
 	struct session sc;
 	memset(&sc, 0, sizeof(struct session));
 	fifo32_init(&fifo, 128, fifobuf);
-	tsw = timer_alloc();
-	timer_init(tsw, &fifo, 1);
-	timer_settime(tsw, 2);
 	bshell_init(&sc, task_id);
 	kb_change_fifo(&fifo);
 	for (;;) {
@@ -72,12 +67,7 @@ void thread_kb_io(int task_id)
 		} else {
 			i = fifo32_get(&fifo);
 			asm_sti();
-			if (i == 1) {
-				task_switch();
-				timer_settime(tsw, 2);
-			} else {
-				kb_input_handling(&sc, i); // shell execution
-			}
+			kb_input_handling(&sc, i); // shell execution
 		}
 	}
 }	
@@ -87,9 +77,9 @@ void thread_kb_io(int task_id)
 struct thread_message {
 	struct FIFO32 fifo;
 	int fifobuf[MAX_FIFO_BUF_SIZE];
-
 	struct TIMER *tsw;
 	int timer_id;
+	int loopcount;
 };
 
 #define THREAD_MESSAGE_MAX 10
@@ -105,6 +95,7 @@ thread_message_init(int task_id)
 	m->tsw = timer_alloc();
 	timer_init(m->tsw, &m->fifo, m->timer_id);
 	timer_settime(m->tsw, m->timer_id);
+	m->loopcount = 1;
 	return m;	
 }
 
@@ -124,7 +115,6 @@ thread_peek_message(int task_id)
 			evt = fifo32_get(&m->fifo);
 			asm_sti();
 			if (evt == m->timer_id) {
-				task_switch();
 				timer_settime(m->tsw, 2);
 			} else {
 				break;
@@ -137,21 +127,21 @@ thread_peek_message(int task_id)
 
 void thread_message_exit(int task_id)
 {
-	/* switch exit */
 	task_stop(task_id);
-	task_switch();
 }
 
 int hello_main(void);
 void thread_events(int task_id)
 {
 	int event;
-	thread_message_init(task_id);
+	struct thread_message *m = thread_message_init(task_id);
 	for (;;) {
 		event = thread_peek_message(task_id);			
-		printf("\n%d: get event=%d\n", task_id, event);
-		hello_main();
-		thread_message_exit(task_id);
+		if (m->loopcount-- > 0) {
+			printf("\n%d: get event=%d\n", task_id, event);
+			hello_main();
+			thread_message_exit(task_id);
+		}
 	}
 } 
 
