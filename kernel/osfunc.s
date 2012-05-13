@@ -401,7 +401,10 @@ _all_trap_handler:
 	;push es
 	;push ds
 	;pushal
-
+	push eax
+	push edx
+	push ecx
+	
 	push esp
 	call trap_handler
 	add  esp, 4
@@ -409,7 +412,10 @@ _all_trap_handler:
 	;popal
 	;pop ds
 	;pop es
-	add  esp, 8
+	pop ecx
+	pop edx 
+	add esp, 4 ; no pop eax for return code
+	add esp, 8
 	iretd
 
 	global trap_handlers

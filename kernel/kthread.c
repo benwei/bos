@@ -131,6 +131,7 @@ void thread_message_exit(int task_id)
 }
 
 int hello_main(void);
+
 void thread_events(int task_id)
 {
 	int event;
@@ -138,7 +139,7 @@ void thread_events(int task_id)
 	for (;;) {
 		event = thread_peek_message(task_id);			
 		if (m->loopcount-- > 0) {
-			printf("\n%d: get event=%d\n", task_id, event);
+			printf("\n(tid=%d): get event:%d\n", task_id, event);
 			hello_main();
 			thread_message_exit(task_id);
 		}

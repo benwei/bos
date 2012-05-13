@@ -2,6 +2,7 @@
 #include "os_sys.h"
 #include "stdio.h"
 #include "trap.h"
+#include "user/syscall.h"
 
 static void panic(const char *msg) {
 	printf(msg);
@@ -68,12 +69,18 @@ int trap_handler(struct trapframe *tf)
 	switch(tf->trapno) {
 	case TRAP_SYSCALL:
 		print_tf(tf);
+
+		if (tf->regs.eax == BSYS_PUTS) {
+			do {
+			printf("syscall(BSYS_PUTS,a2=%d),a1: %s\n", tf->regs.ecx, tf->regs.edx);
+			} while(0);
+		}
 		//panic("panic: system halt");
 		return 101;
 		break;
 	default:
 		print_tf(tf);
-		panic("panic: system halt");
+		panic("panic: system halt\n");
 	}
 	return 0;
 }
