@@ -41,9 +41,18 @@ extern struct SEGMENT_DESCRIPTOR *gdt;
 struct TIMER *mt_timer;
 
 void task_init(struct MEMMAN *memman);
-int task_create(int func, struct MEMMAN *memman, const char *name);
+int task_create(int func, struct MEMMAN *memman, const char *name, int active);
 void task_switch();
 void task_run(struct task *t, int priority);
+int task_getstate(struct task *t);
 
+/*
+* state: TASK_RUN, TASK_STOP
+*/
+void task_setstate(struct task *t, int state);
+
+void task_stop(unsigned int task_id);
+void task_start(unsigned int task_id);
 struct task *get_task(unsigned int task_id);
+
 #endif /* OS_TASK_H */

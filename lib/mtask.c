@@ -11,6 +11,7 @@ struct taskctl *ptaskctl;
 extern void thread_lazyman_sleep();
 
 #define MEM64K 64 * 1024
+static void task_add(struct task *t);
 
 void task_init(struct MEMMAN *memman)
 {
@@ -48,9 +49,11 @@ void task_init(struct MEMMAN *memman)
 	t->pid = 0;
 	strcpy(t->processname, "sleep");
 	task_run(t, 1);
+	task_add(t);
 }
 
-int task_create(int func, struct MEMMAN *memman, const char *name)
+int
+task_create(int func, struct MEMMAN *memman, const char *name, int active)
 {
 	struct task *t;
 	struct TSS32 *tss; 
@@ -84,42 +87,63 @@ int task_create(int func, struct MEMMAN *memman, const char *name)
 	tss->esi = 0;
 	tss->edi = 0;
 	tss->es = 2 * 8;
-	tss->cs = 1 * 8; // same segment with boot os 
+	if (i == 2) {
+		tss->cs = 1 * 8;
+		tss->gs = 2 * 8;
+	} else {
+		tss->cs = 1 * 8; // same segment with boot os 
+		tss->gs = 2 * 8;
+	}
 	tss->ss = 2 * 8;
 	tss->ds = 2 * 8;
 	tss->fs = 2 * 8;
-	tss->gs = 2 * 8;
 	*((int *) (tss->esp + 4)) = (int) i;
 	t->flag = TASK_STOP;
 	strcpy(t->processname, name);
 	t->pid = i;
-	task_run(t, 1);
+	if (active) {
+		task_run(t, 1);
+	}
+	task_add(t);
 	return i;
+}
+
+void task_add(struct task *t)
+{
+	ptaskctl->taskring[ptaskctl->running] = t;
+	ptaskctl->running++;
 }
 
 void task_run(struct task *t, int priority)
 {
-	if (t->priority > 0) {
-		t->priority = priority;	
-	}
+	t->priority = priority;	
+	t->flag = TASK_RUN;
+}
 
-	if (t->flag != TASK_RUN) {
-		t->flag = TASK_RUN;
-		ptaskctl->taskring[ptaskctl->running] = t;
-		ptaskctl->running++;
-	}
+int task_getstate(struct task *t)
+{
+	return t->flag;
+}
+
+
+void task_setstate(struct task *t, int state)
+{
+	t->flag = state;
 }
 
 void task_switch()
 {
 	struct task *t;
 
-	ptaskctl->now++;
-	if (ptaskctl->now == ptaskctl->running) {
-		ptaskctl->now = 0;
-	}
+	do {
+		ptaskctl->now++;
+		if (ptaskctl->now == ptaskctl->running) {
+			ptaskctl->now = 0;
+		}
 
-	t = ptaskctl->taskring[ptaskctl->now];
+		t = ptaskctl->taskring[ptaskctl->now];
+	} while(t->flag != TASK_RUN);
+
 	farjmp(0, TASK_SEGNO(ptaskctl->now));
 }
 
@@ -129,4 +153,17 @@ struct task *get_task(unsigned int task_id)
 		return &ptaskctl->tasks[task_id];
 	}
 	return NULL;
+}
+
+
+void task_stop(unsigned int task_id)
+{
+	struct task *t = get_task(task_id);
+	t->flag = TASK_STOP;
+}
+
+void task_start(unsigned int task_id)
+{
+	struct task *t = get_task(task_id);
+	t->flag = TASK_RUN;
 }

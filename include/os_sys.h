@@ -50,6 +50,8 @@ void farjmp(int eip, int cs);
 #define AR_INTGATE32	0x008e 
 #define AR_I386GATE32	0x008e
 
+#define TRAP_SYSCALL    68
+
 /* for memory.c */
 int io_load_eflags(void);
 void io_store_eflags(int eflags);

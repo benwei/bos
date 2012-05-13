@@ -1,7 +1,13 @@
 #include "stdio.h"
+#include "user/syscall.h"
+
+void uputs(const char *msg)
+{
+	syscall(8, (unsigned int)"msg", 0);
+}
 
 int hello_main(void)
 {
-	puts("hello world");
+	uputs("hello world\n");
 	return 0;		
 }

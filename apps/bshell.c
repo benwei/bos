@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "net.h"
 #include "malloc.h"
+#include "os_mtask.h"
 
 static int key_shift = 0;
 static int key_caps  = 0;
@@ -101,9 +102,11 @@ void command_ps(struct session *s)
 	int i;
 	for (i = 0; i < MAX_TASK_NUM ; i++) {
 		t = &ptaskctl->tasks[i];
+		int pid = getpid_from_task(t);
 		if (t->flag == TASK_RUN) {
-			int pid = getpid_from_task(t);
 			printf("%d %s - running %d\n", pid, t->processname, getmtime_by_pid(pid));
+		} else if (*t->processname && t->flag == TASK_STOP) {
+			printf("%d %s - stopped %d\n", pid, t->processname, getmtime_by_pid(pid));
 		}
 	}
 }
@@ -168,8 +171,19 @@ void command_ud2() {
 	__asm __volatile("ud2");	
 }
 
-void command_divzero(struct session *s) {
+void command_divzero(struct session *s)
+{
 	user_div_zero();
+}
+
+int hello_main(void);
+void command_hello(struct session *s)
+{
+	hello_main();
+}
+
+void command_run(struct session *s) {
+	task_start(2);
 }
 
 void command_net(struct session *s);
@@ -195,11 +209,15 @@ static cmdtable command_table[] = {
 	{"lspci",  5, &command_lspci, "list pci info" },
 	{"divzero",7, &command_divzero,"idt testing" },
 	{"ud2",    3, &command_ud2,   "idt testing" },
+	{"hello",  5, &command_hello, "idt hello" },
+	{"run",    3, &command_run,   "run events" },
 	{"netsend",7, &command_net_tx,"test ethernet send" },
 	{"net",    3, &command_net,   "list ethernet info" },
 	{"test",   4, &command_test,   "test vfs info" },
 	{"", 0, NULL}
 };
+
+
 
 static void
 command_help(struct session *s)

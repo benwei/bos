@@ -32,7 +32,7 @@ void init_gdtidt(void)
 	/* setup interrupt handler */
 
 	
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < 256; i++) {
 		set_gatedesc(idt + i, (int) trap_handlers[i], OS_KERN_CS, AR_I386GATE32);
 	}
 

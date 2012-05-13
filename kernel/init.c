@@ -106,7 +106,8 @@ void _benmain(void)
 	*/
 
 	load_tr(3 * 8); // record current working task to tss_a
-	task_create((int) &thread_kb_io, memman, "bshell");
+	task_create((int) &thread_kb_io, memman, "bshell", 1);
+	task_create((int) &thread_events, memman, "events", 0);
 
 	/* strange issue encountered if run pci_init at the setup_hw() */
 	puts("pci scan bus\n");

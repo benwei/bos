@@ -18,18 +18,10 @@
 
 #define STR_PROMPT "bos$"
 
-int g_mtime[MAX_TASK_NUM];
 
-int getmtime_by_pid(int pid)
-{
-	return g_mtime[pid];
-}
-
-int update_mtime_by_pid(int pid, int offset)
-{
-	g_mtime[pid] += offset;
-	return 0;
-}
+int getpid_from_task(struct task *t);
+int getmtime_by_pid(int pid);
+int update_mtime_by_pid(int pid, int offset);
 
 void thread_lazyman_sleep(int task_id)
 {
@@ -88,11 +80,78 @@ void thread_kb_io(int task_id)
 			}
 		}
 	}
+}	
+
+#define MAX_FIFO_BUF_SIZE 128
+
+struct thread_message {
+	struct FIFO32 fifo;
+	int fifobuf[MAX_FIFO_BUF_SIZE];
+
+	struct TIMER *tsw;
+	int timer_id;
+};
+
+#define THREAD_MESSAGE_MAX 10
+static struct thread_message thread_messages[THREAD_MESSAGE_MAX];
+
+static struct thread_message *
+thread_message_init(int task_id)
+{
+	struct thread_message *m = &thread_messages[task_id];
+	m->timer_id = 2;
+
+	fifo32_init(&m->fifo, MAX_FIFO_BUF_SIZE, m->fifobuf);
+	m->tsw = timer_alloc();
+	timer_init(m->tsw, &m->fifo, m->timer_id);
+	timer_settime(m->tsw, m->timer_id);
+	return m;	
 }
 
-/* functions for app used */
-int getpid_from_task(struct task *t)
+int
+thread_peek_message(int task_id)
 {
-	return t->pid;
+	int evt;
+	struct thread_message *m = &thread_messages[task_id];
+	update_mtime_by_pid(task_id, 1);
+	int counter = 0;
+
+	do {
+		asm_cli();
+		if (fifo32_status(&m->fifo) == 0) {
+			asm_stihlt();
+		} else {
+			evt = fifo32_get(&m->fifo);
+			asm_sti();
+			if (evt == m->timer_id) {
+				task_switch();
+				timer_settime(m->tsw, 2);
+			} else {
+				break;
+			}
+		}
+	} while (counter++ < 2);
+
+	return evt;
 }
+
+void thread_message_exit(int task_id)
+{
+	/* switch exit */
+	task_stop(task_id);
+	task_switch();
+}
+
+int hello_main(void);
+void thread_events(int task_id)
+{
+	int event;
+	thread_message_init(task_id);
+	for (;;) {
+		event = thread_peek_message(task_id);			
+		printf("\n%d: get event=%d\n", task_id, event);
+		hello_main();
+		thread_message_exit(task_id);
+	}
+} 
 

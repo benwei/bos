@@ -1,4 +1,5 @@
 #include "os_stdio.h"
+#include "os_sys.h"
 #include "stdio.h"
 #include "trap.h"
 
@@ -33,28 +34,45 @@ static const char * const exception_desc[] = {
 static inline const char *
 get_trap_desc(trapno)
 {
+	if (trapno == TRAP_SYSCALL) {
+		return "System Call";
+	}
 	if (trapno < sizeof(exception_desc)/sizeof(exception_desc[0]))
 		return exception_desc[trapno];
 	return exception_desc[15];
 }
 
+
 /* 
  * using push esp to stack, trap_handler get trapframe struct
  */
-void trap_handler(struct trapframe *tf)
+void print_tf(struct trapframe *tf)
 {
 	if (tf->cs == OS_KERN_CS) {
 			printf("exception: %s\n eip:%08x,cs:%04x,eflags:%08x\n",
 				get_trap_desc(tf->trapno),
 				tf->eip, tf->cs, tf->eflags);
 			/* encounter an issue that repeat trap message in kernel cs */
-			if (tf->trapno == 0 || tf->trapno == 6) {
-				panic("panic: system halt");
-			}
 			return;
 	}
 
 	printf("exception: %s\n eip:%08x,cs:%04x,eflags:%08x,esp:%08x,ss:%04x\n",
 			get_trap_desc(tf->trapno),
 			tf->eip, tf->cs, tf->eflags, tf->esp, tf->ss);
+}
+
+
+int trap_handler(struct trapframe *tf)
+{
+	printf("trapno=%d\n", tf->trapno);
+	switch(tf->trapno) {
+	case TRAP_SYSCALL:
+		print_tf(tf);
+		return 101;
+		break;
+	default:
+		print_tf(tf);
+		panic("panic: system halt");
+	}
+	return 0;
 }
