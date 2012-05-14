@@ -147,6 +147,11 @@ void task_schedule()
 	farjmp(0, TASK_SEGNO(ptaskctl->now));
 }
 
+struct task *get_now_task(void)
+{
+	return ptaskctl->taskring[ptaskctl->now];
+}
+
 struct task *get_task(unsigned int task_id)
 {
 	if (task_id < MAX_TASK_NUM) {
@@ -166,4 +171,13 @@ void task_start(unsigned int task_id)
 {
 	struct task *t = get_task(task_id);
 	t->flag = TASK_RUN;
+}
+
+int task_wait(unsigned int task_id)
+{
+	struct task *t = get_task(task_id);
+	while (t->flag == TASK_RUN ){
+		;;
+	}
+	return 0;
 }

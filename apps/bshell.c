@@ -190,6 +190,8 @@ void command_hello(struct session *s)
 
 void command_run(struct session *s) {
 	task_start(2);
+	/* blocking util task stopped */
+	task_wait(2);
 }
 
 void command_net(struct session *s);

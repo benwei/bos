@@ -55,4 +55,6 @@ void task_stop(unsigned int task_id);
 void task_start(unsigned int task_id);
 struct task *get_task(unsigned int task_id);
 
+int task_wait(unsigned int task_id);
+
 #endif /* OS_TASK_H */
