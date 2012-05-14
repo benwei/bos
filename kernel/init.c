@@ -88,8 +88,7 @@ void _benmain(void)
 	set_segmdesc(gdt + 0, 103, (int) &tss_a, AR_TSS32);
 
 	task_init(memman);
-
-	/* Unfortunate try the switch back to 3*8 (_benmain) with farjmp but not working.
+	/* Unfortunate try the switch back to 0*8 (_benmain) with farjmp but not working.
 	* And the reason still unknown.
 	* So that I use another thread_kb_io() to catch the keyboard interrupt.
 	*/
