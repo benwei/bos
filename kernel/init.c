@@ -73,30 +73,19 @@ void env_init()
 
 void _benmain(void)
 {
-	int i;
-	int c = 0;
-	int keybuf[128]={0};
 	struct FIFO32 fifo;
-	struct TIMER *timer;
+	int keybuf[128]={0};
 	fifo32_init(&fifo, 128, keybuf);
-	struct TSS32 tss_a, tss_c;
+	struct TSS32 tss_a = {0};
 	cons_init();
 	env_init();
 
 	/* keyboard setting */
 	init_kb(&fifo, 256);
 
-	i=0;	
-
-	timer = timer_alloc();
-	timer_init(timer, &fifo, 1);
-	timer_settime(timer, 50);
-
 	tss_a.ldtr = 0;
 	tss_a.iomap = 0x40000000;
-	tss_c.ldtr = 0;
-	tss_c.iomap = 0x40000000;
-	set_segmdesc(gdt + 3, 103, (int) &tss_a, AR_TSS32);
+	set_segmdesc(gdt + 0, 103, (int) &tss_a, AR_TSS32);
 
 	task_init(memman);
 
@@ -104,29 +93,15 @@ void _benmain(void)
 	* And the reason still unknown.
 	* So that I use another thread_kb_io() to catch the keyboard interrupt.
 	*/
-
-	load_tr(3 * 8); // record current working task to tss_a
+	load_tr(0 * 8); // record current working task to tss_a
 	task_create((int) &thread_kb_io, memman, "bshell", 1);
 	task_create((int) &thread_events, memman, "events", 0);
 
 	/* strange issue encountered if run pci_init at the setup_hw() */
 	puts("pci scan bus\n");
 	pci_init();
-	for (;;) {
-		asm_cli();
-		if (fifo32_status(&fifo) == 0) {
-			asm_stihlt(); // wake while keyboard input 
-			// got a interrupt
-		} else { /* scan_code input */
-			c=fifo32_get(&fifo);
-			asm_sti();
-			if (c == 1) { 
-				farjmp(0, 4*8);
-			} else {
-				puts("disabled boot options.\n");
-			}
-		}
-	}
+	farjmp(0, 4*8);
+
 	puts("\nSystem Halted                                    \n");
 	_syshalt();
 }

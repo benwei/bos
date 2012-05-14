@@ -52,11 +52,14 @@ void task_init(struct MEMMAN *memman)
 	task_add(t);
 }
 
+#define TSS_SIZE 103
+
 int
 task_create(int func, struct MEMMAN *memman, const char *name, int active)
 {
 	struct task *t;
 	struct TSS32 *tss; 
+	unsigned int ar = 0;
 	int i = 0;
 	for (i = 0; i < MAX_TASK_NUM ; i++) {
 		if (ptaskctl->tasks[i].flag == TASK_STOP) {
@@ -75,7 +78,6 @@ task_create(int func, struct MEMMAN *memman, const char *name, int active)
 
 	tss->ldtr = 0;
 	tss->iomap = 0x40000000;
-	set_segmdesc(gdt + TASK_SEG + i, 103, (int) tss, AR_TSS32);
 	tss->eip = func;
 	tss->eflags = 0x00000202; /* IF = 1; */
 	tss->eax = 0;
@@ -88,15 +90,18 @@ task_create(int func, struct MEMMAN *memman, const char *name, int active)
 	tss->edi = 0;
 	tss->es = 2 * 8;
 	if (i == 2) {
-		tss->cs = 1 * 8;
-		tss->gs = 2 * 8;
+		#define AR_RING3 0x3
+		set_segmdesc(gdt + TASK_SEG + i, TSS_SIZE, (int) tss, 0x89| AR_RING3<<5);
+		tss->cs = 1 * 8; 
 	} else {
-		tss->cs = 1 * 8; // same segment with boot os 
-		tss->gs = 2 * 8;
+		set_segmdesc(gdt + TASK_SEG + i, TSS_SIZE, (int) tss, AR_TSS32);
+		tss->cs = 1 * 8; 
 	}
 	tss->ss = 2 * 8;
 	tss->ds = 2 * 8;
 	tss->fs = 2 * 8;
+	tss->gs = 2 * 8;
+
 	*((int *) (tss->esp + 4)) = (int) i;
 	t->flag = TASK_STOP;
 	strcpy(t->processname, name);

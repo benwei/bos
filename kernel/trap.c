@@ -51,8 +51,8 @@ get_trap_desc(trapno)
 void print_tf(struct trapframe *tf)
 {
 	if (tf->cs == OS_KERN_CS) {
-			printf("trap: %s\n eip:%08x,cs:%04x,eflags:%08x\n",
-				get_trap_desc(tf->trapno),
+			printf("trap(%d): %s\n eip:%08x,cs:%04x,eflags:%08x\n",
+				tf->trapno,get_trap_desc(tf->trapno),
 				tf->eip, tf->cs, tf->eflags);
 			/* encounter an issue that repeat trap message in kernel cs */
 			return;
@@ -68,18 +68,15 @@ struct task *get_now_task(void);
 
 int trap_handler(struct trapframe *tf)
 {
-	printf("trapno=%d\n", tf->trapno);
 	switch(tf->trapno) {
 	case TRAP_SYSCALL:
 		print_tf(tf);
-
 		if (tf->regs.eax == BSYS_PUTS) {
 			do {
 			struct task *t = get_now_task();
 			printf("task_id(%d) syscall(BSYS_PUTS,a2=%d),a1: %s\n", t->pid, tf->regs.ecx, tf->regs.edx);
 			} while(0);
 		}
-		//panic("panic: system halt");
 		return 101;
 		break;
 	default:
