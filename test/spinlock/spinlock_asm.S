@@ -1,7 +1,7 @@
 
-.global _spinunlock, _spinlock, _dumpasm
+.global spinunlock, spinlock
 
-_spinlock:
+spinlock:
 	push   %ebp
 	mov    %esp, %ebp
 	mov    0x8(%ebp),%ecx
@@ -16,7 +16,7 @@ _spinlock:
 	pop    %ebp
 	ret
 
-_spinunlock:
+spinunlock:
 	push   %ebp
 	mov    %esp, %ebp
 	mov    0x8(%ebp), %ecx

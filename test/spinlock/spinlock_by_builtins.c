@@ -9,6 +9,6 @@ void spinlock(int *p)
 
 void spinunlock(int volatile *p)
 {
-    asm volatile (""); // acts as a memory barrier.
+    asm volatile ("":::"memory"); // acts as a memory barrier.
     *p = 0;
 }

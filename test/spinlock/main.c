@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <pthread.h>
 
+#ifndef MAX_LOCK_TIME
+#define MAX_LOCK_TIME 2 
+#endif
+
 void spinlock(void *lock);
 void spinunlock(void *lock);
 
@@ -14,7 +18,7 @@ static void thr_foolock(void *arg) {
 }
 
 static void thr_foounlock(void *arg) {
-	int counter = 2;
+	int counter = MAX_LOCK_TIME;
 	printf("foounlock releasing lock\n");
 	while (--counter) {
 		printf("block remaining %d seconds\n", counter);
