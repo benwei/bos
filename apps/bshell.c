@@ -18,6 +18,7 @@
 #include "malloc.h"
 #include "os_mtask.h"
 #include "os_timer.h"
+#include "kproc.h"
 
 static int key_shift = 0;
 static int key_caps  = 0;
@@ -99,16 +100,17 @@ static inline void show_prompt(struct session *s, const char *prompt)
 
 void command_ps(struct session *s)
 {
-	struct task *t;
-	int i;
-	for (i = 0; i < MAX_TASK_NUM ; i++) {
-		t = &ptaskctl->tasks[i];
-		int pid = getpid_from_task(t);
-		if (t->flag == TASK_RUN) {
-			printf("%d %s - running %d\n", pid, t->processname, getmtime_by_pid(pid));
-		} else if (*t->processname && t->flag == TASK_STOP) {
-			printf("%d %s - stopped %d\n", pid, t->processname, getmtime_by_pid(pid));
-		}
+	const char *msg_state[] = {"running", "stop", "idle"};
+	
+	struct proc mproc;
+	proc_init(&mproc);
+	struct ps mps = {0};
+	while(proc_read_ps(&mproc, &mps)){
+		printf("%d %s - %s %d\n",
+			mps.pid,
+			mps.name,
+			msg_state[mps.state],
+			mps.mtime);
 	}
 }
 

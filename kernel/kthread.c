@@ -9,7 +9,6 @@
 #include "os_sys.h"
 #include "os_bits.h"
 #include "os_keyboard.h"
-#include "os_fifo.h"
 #include "os_memory.h"
 #include "kthread.h"
 #include "os_timer.h"
@@ -72,40 +71,30 @@ void thread_kb_io(int task_id)
 	}
 }	
 
-#define MAX_FIFO_BUF_SIZE 128
-
-struct thread_message {
-	struct FIFO32 fifo;
-	int fifobuf[MAX_FIFO_BUF_SIZE];
-	struct TIMER *tsw;
-	int timer_id;
-	int loopcount;
-};
-
-#define THREAD_MESSAGE_MAX 10
 static struct thread_message thread_messages[THREAD_MESSAGE_MAX];
 
 static struct thread_message *
 thread_message_init(int task_id)
 {
+	struct task *t = get_task(task_id);
 	struct thread_message *m = &thread_messages[task_id];
 	m->timer_id = 2;
-
+	m->task_id = task_id;
+	m->event = 1;
 	fifo32_init(&m->fifo, MAX_FIFO_BUF_SIZE, m->fifobuf);
 	m->tsw = timer_alloc();
 	timer_init(m->tsw, &m->fifo, m->timer_id);
 	timer_settime(m->tsw, m->timer_id);
-	m->loopcount = 1;
-	return m;	
+	t->env = m;
+	return m;
 }
 
 int
-thread_peek_message(int task_id)
+thread_peek_message(struct thread_message *m)
 {
-	int evt;
-	struct thread_message *m = &thread_messages[task_id];
-	update_mtime_by_pid(task_id, 1);
+	update_mtime_by_pid(m->task_id, 1);
 	int counter = 0;
+	int evt;
 
 	do {
 		asm_cli();
@@ -122,27 +111,43 @@ thread_peek_message(int task_id)
 		}
 	} while (counter++ < 2);
 
-	return evt;
+	return m->event;
 }
 
-void thread_message_exit(int task_id)
+void thread_message_exit(struct thread_message *m)
 {
-	task_stop(task_id);
+	m->event = 0;
+	task_idle(m->task_id);
+}
+
+void thread_wakeup(struct task *t)
+{
+	((struct thread_message *)t->env)->event = 1;
+}
+
+int task_wait(unsigned int task_id)
+{
+	struct task *t = get_task(task_id);
+	while (t->flag == TASK_RUN){
+		;;
+	}
+	return 0;
 }
 
 int hello_main(void);
 
 void thread_events(int task_id)
 {
-	int event;
+	int event = 0;
 	struct thread_message *m = thread_message_init(task_id);
-	for (;;) {
-		event = thread_peek_message(task_id);			
-		if (m->loopcount-- > 0) {
-			printf("\n(tid=%d): get event:%d\n", task_id, event);
-			hello_main();
-			thread_message_exit(task_id);
+	do {
+		event = thread_peek_message(m);			
+		if (event > 0) {
+		printf("\n(tid=%d): get event=%d\n", task_id, event);
+		hello_main();
+		printf("\nend (tid=%d)\n", task_id);
+		thread_message_exit(m);
 		}
-	}
+	} while(1);
 } 
 

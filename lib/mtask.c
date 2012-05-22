@@ -90,7 +90,7 @@ task_create(int func, struct MEMMAN *memman, const char *name, int active)
 	tss->edi = 0;
 	tss->es = 2 * 8;
 	if (i == 2) {
-		#define AR_RING3 0x3
+		#define AR_RING3 0x0
 		set_segmdesc(gdt + TASK_SEG + i, TSS_SIZE, (int) tss, 0x89| AR_RING3<<5);
 		tss->cs = 1 * 8; 
 	} else {
@@ -117,6 +117,13 @@ void task_add(struct task *t)
 {
 	ptaskctl->taskring[ptaskctl->running] = t;
 	ptaskctl->running++;
+}
+
+static inline void
+task_remove(struct task *t)
+{
+	if (ptaskctl->taskring[ptaskctl->running] == t)
+	    ptaskctl->running--;
 }
 
 void task_run(struct task *t, int priority)
@@ -165,24 +172,26 @@ struct task *get_task(unsigned int task_id)
 	return NULL;
 }
 
+void task_idle(unsigned int task_id)
+{
+	struct task *t = get_task(task_id);
+	t->flag = TASK_IDLE;
+}
 
 void task_stop(unsigned int task_id)
 {
 	struct task *t = get_task(task_id);
-	t->flag = TASK_STOP;
+	task_remove(t);
 }
+
+void thread_wakeup(struct task *t);
 
 void task_start(unsigned int task_id)
 {
 	struct task *t = get_task(task_id);
+	if (t->flag == TASK_IDLE)
+		thread_wakeup(t);
+
 	t->flag = TASK_RUN;
 }
 
-int task_wait(unsigned int task_id)
-{
-	struct task *t = get_task(task_id);
-	while (t->flag == TASK_RUN ){
-		;;
-	}
-	return 0;
-}

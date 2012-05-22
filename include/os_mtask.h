@@ -14,6 +14,7 @@ struct task {
 	int pid; /* process identifier */
 	struct TSS32 tss;
 	char processname[32];
+	void *env;
 };
 
 struct taskctl {
@@ -31,6 +32,7 @@ extern struct taskctl *ptaskctl;
 /** task state */
 #define TASK_STOP 0
 #define TASK_RUN  1
+#define TASK_IDLE 2
 #define TASK_SEG  4
 #define TASK_SLEEP 8
 
@@ -56,5 +58,6 @@ void task_start(unsigned int task_id);
 struct task *get_task(unsigned int task_id);
 
 int task_wait(unsigned int task_id);
+void task_idle(unsigned int task_id);
 
 #endif /* OS_TASK_H */
