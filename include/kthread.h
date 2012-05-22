@@ -26,4 +26,17 @@ struct thread_message {
 #define THREAD_MESSAGE_MAX 10
 
 
+struct thread_message *
+thread_message_init(int task_id);
+
+
+int
+thread_peek_message(struct thread_message *m);
+
+void
+thread_message_exit(struct thread_message *m);
+
+
+int update_mtime_by_pid(int pid, int offset);
+
 #endif /* KTHREAD_H */

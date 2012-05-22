@@ -59,7 +59,6 @@ task_create(int func, struct MEMMAN *memman, const char *name, int active)
 {
 	struct task *t;
 	struct TSS32 *tss; 
-	unsigned int ar = 0;
 	int i = 0;
 	for (i = 0; i < MAX_TASK_NUM ; i++) {
 		if (ptaskctl->tasks[i].flag == TASK_STOP) {
@@ -195,3 +194,12 @@ void task_start(unsigned int task_id)
 	t->flag = TASK_RUN;
 }
 
+int
+task_wait(unsigned int task_id)
+{
+       struct task *t = get_task(task_id);
+       while (t->flag == TASK_RUN){
+               ;;
+       }
+       return 0;
+}
