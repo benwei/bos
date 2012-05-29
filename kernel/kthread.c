@@ -4,8 +4,8 @@
 * bshell is running at keyboard_io kernel thread
 */
 
+#include "stdio.h"
 #include "os_stdio.h"
-#include "os_stdio2.h"
 #include "os_sys.h"
 #include "os_bits.h"
 #include "os_keyboard.h"
@@ -14,12 +14,6 @@
 #include "os_timer.h"
 #include "string.h"
 #include "bshell.h"
-
-#define STR_PROMPT "bos$"
-
-
-int getpid_from_task(struct task *t);
-int getmtime_by_pid(int pid);
 
 void thread_lazyman_sleep(int task_id)
 {
@@ -80,7 +74,7 @@ void thread_events(int task_id)
 	do {
 		event = thread_peek_message(m);			
 		if (event > 0) {
-		printf("\n(tid=%d): get event=%d\n", task_id, event);
+		printf("(tid=%d): get event=%d\n", task_id, event);
 		hello_main();
 		printf("\nend (tid=%d)\n", task_id);
 		thread_message_exit(m);
