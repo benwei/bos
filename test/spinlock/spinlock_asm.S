@@ -24,6 +24,3 @@ _spinunlock:
 	xchgl  %eax, (%ecx)
 	pop    %ebp
 	ret    
-
-_dumyasm:
-	ret
