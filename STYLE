@@ -4,3 +4,9 @@
 == reference ==
 http://en.wikipedia.org/wiki/Indent_style#K.26R_style
 
+
+== vim rules ==
+set expandtab
+set shiftwidth=4
+set softtabstop=4
+set tabstop=4
