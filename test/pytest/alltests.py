@@ -11,30 +11,28 @@ def boslog(msg):
         print msg
 
 
-class BOSTest(unittest.TestCase):
-    def runTest(self):
-        self.test_atoi();
+class BOSTest_atoi(unittest.TestCase):
+    s = (c_byte*9)()
+    c = 427
 
     def test_atoi(self):
         '''
         const char *itohex(uint32_t c, char *s, int size, int upper)
         '''
-        c = 427
-        s = (c_byte*9)();
-        b = bc.itohex(c, s, c_int(9), c_int(0))
-        for i in range(0, 8):
-            boslog("[%d]%c" % (i, s[i]))
-        assert chr(s[7]) == 'b', 'incorrent data'
+        b = bc.itohex(self.c, self.s, c_int(9), c_int(0))
+        hex_str = string_at(self.s)
+        boslog("%s" % (hex_str))
+        assert hex_str == "000001ab", "atoi padding hex string"
+        assert string_at(b) == "1ab"," atoi incorrect no-zero hex padding"
+
+    def test_auto_with_upper(self):
+        upper_hex = bc.itohex(self.c, self.s, c_int(9), c_int(1))
+        assert string_at(upper_hex) == "1AB", \
+                " atoi incorrect no-zero upper hex padding"
 
 def suite_blibc():
-    '''
-    suite = unittest.makeSuite(bosTestCase,'test')
-    '''
-    bosTestSuite = unittest.TestSuite()
-    testCase = BOSTest()
-    bosTestSuite.addTest(testCase)
+    bosTestSuite = unittest.makeSuite(BOSTest_atoi, 'test')
     return bosTestSuite
-
 
 def main():
     suite1 = suite_blibc()
