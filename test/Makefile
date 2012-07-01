@@ -46,3 +46,8 @@ clean:
 		echo "clean $$i" ; \
 		make -C $$i clean ; \
 	fi done
+
+pytest:
+	make -C pytest
+
+.PHONY: pytest
