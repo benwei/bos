@@ -1,9 +1,9 @@
 import unittest
 from ctypes import *
 
-bc = CDLL("./blibc.so")
+bc = CDLL("./libblibc.so")
 
-verbose = 1
+verbose = 0
 
 def boslog(msg):
     global verbose
