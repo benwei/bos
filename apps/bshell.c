@@ -67,10 +67,17 @@ void dump_e820(struct session *s)
 			msg = "Free";
 		} else
 			msg = "Reserved";
+		if (e->addr_high == 0 && e->len_high == 0) {
+		printf(" %0x | %0x | %s(%d)\n",
+			 e->addr_low,
+			 e->len_low,
+			 msg, e->type);
+		} else {
 		printf(" %0x%0x | %0x%0x | %s(%d)\n",
 			 e->addr_high, e->addr_low,
 			 e->len_high, e->len_low,
 			 msg, e->type);
+		}
 	}
 }
 
