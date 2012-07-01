@@ -105,6 +105,10 @@ run: package
 	@#only support in well-setup Ubuntu and OSX(only tried 10.6.8)
 	make -C test IMG_NAME="../$(IMG_NAME)" QEMUEXTRA=$(QEMUEXTRA)
 
+update: $(SYSBIN)
+	mcopy -n -o -i "$(IMG_NAME)" "$(SYSBIN)"  ::
+	mdir -i "$(IMG_NAME)"
+
 bin: $(SYSBIN)
 hex:
 	hexdump -C $(IMG_NAME)
