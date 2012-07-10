@@ -8,7 +8,7 @@ MACHINE=pc-0.11
 endif
 
 IMG_NAME = $(SRCROOT)/bos.img
-TESTDIRS=$(wildcard test*)
+TESTDIRS=$(wildcard *)
 
 # -redir tcp:4080::80
 # tells qemu to listen on port 4080 and to forward connections to bos's port 80.
