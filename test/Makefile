@@ -31,9 +31,9 @@ run:
 		exit 1 ; \
 	fi 
 ifeq ($(KNAME),$(KNAME_CYGWIN))
-	$(QEMU) -fda "$(IMG_NAME)" $(NET_OPT)
+	$(QEMU)$(QEMUMODEL) -fda "$(IMG_NAME)" $(NET_OPT)
 else
-	$(QEMU) -M $(MACHINE) -fda "$(IMG_NAME)" $(NET_OPT)
+	$(QEMU)$(QEMUMODEL) -M $(MACHINE) -fda "$(IMG_NAME)" $(NET_OPT)
 endif
 
 check:

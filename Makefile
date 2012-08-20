@@ -103,7 +103,8 @@ package: $(OS_LOADER) $(IMG_NAME) $(SYSBIN)
 
 run: package
 	@#only support in well-setup Ubuntu and OSX(only tried 10.6.8)
-	make -C test IMG_NAME="../$(IMG_NAME)" QEMUEXTRA=$(QEMUEXTRA)
+	make -C test IMG_NAME="../$(IMG_NAME)" QEMUEXTRA=$(QEMUEXTRA) \
+		QEMUMODEL=$(QEMUMODEL)
 
 update: $(SYSBIN)
 	mcopy -n -o -i "$(IMG_NAME)" "$(SYSBIN)"  ::
