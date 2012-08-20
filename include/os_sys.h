@@ -4,7 +4,7 @@
 #include "types.h"
 
 #ifndef BOS_VERSION
-#define BOS_VERSION "0.2.2"
+#define BOS_VERSION "0.2.4"
 #endif
 
 struct BOOTINFO { /* 0x0ff0-0x0fff */
