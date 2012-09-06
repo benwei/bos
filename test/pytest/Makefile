@@ -1,7 +1,7 @@
 CFILES= ../../blibc/itoa.c
 OBJS=$(CFILES:.c=.o)
 CFLAGS= -I ../../include
-BLIBC_SHARED = libblibc.so
+BLIBC_SHARED = libbosc.so
 
 
 all: $(BLIBC_SHARED)

@@ -1,7 +1,9 @@
-import unittest
+import unittest,os
 from ctypes import *
 
-bc = CDLL("./libblibc.so")
+app_path = os.path.dirname(os.path.abspath(__file__))
+libpathname = os.path.join(app_path, "./libbosc.so")
+bc = CDLL(libpathname);
 
 verbose = 0
 
