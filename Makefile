@@ -143,3 +143,5 @@ clean:
 	rm -f $(IMG_NAME) *.elf *.img $(SYSBIN) *.o *.lst *.map $(KERN_OBJS) $(HW_DEP_ASM_OBJ) $(OS_LOADER)
 	make -C test clean
 
+ctags:
+	ctags -R .
