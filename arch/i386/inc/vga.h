@@ -16,7 +16,7 @@
 #define MAX_COLS 80
 #define MAX_ROWS 25
 
-extern void screen_setcursor(int x, int y);
-extern void screen_scrollto(int pos);
+extern void vga_setcursor(int x, int y);
+extern void vga_scrollto(int pos);
 
 #endif /* VGA_H */

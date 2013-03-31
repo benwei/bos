@@ -60,4 +60,5 @@ struct task *get_task(unsigned int task_id);
 int task_wait(unsigned int task_id);
 void task_idle(unsigned int task_id);
 
+struct task *get_now_task(void);
 #endif /* OS_TASK_H */

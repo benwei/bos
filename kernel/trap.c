@@ -63,10 +63,6 @@ void print_tf(struct trapframe *tf)
 			tf->eip, tf->cs, tf->eflags, tf->esp, tf->ss);
 }
 
-
-struct task *get_now_task(void);
-
-
 int trap_handler(struct trapframe *tf)
 {
 	switch(tf->trapno) {
