@@ -7,3 +7,5 @@
 *.map
 tags
 *.so
+*.BIN
+*.img
