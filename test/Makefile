@@ -14,7 +14,11 @@ TESTDIRS=$(wildcard *)
 # tells qemu to listen on port 4080 and to forward connections to bos's port 80.
 NET_OPT=-net user -net nic,model=i82559er -redir tcp:4080::80 $(QEMUEXTRA)
 #NET_OPT=-net user -net nic,model=i82559er $(QEMUEXTRA)
+ifneq ($(shell which qemu-system-x86_64),)
+QEMU=qemu-system-x86_64
+else
 QEMU=qemu
+endif
 QEMUOSE=/usr/local/qemuose/bin/qemu
 ifneq ($(shell which $(QEMUOSE)),)
 ifeq ($(QDEBUG),1)
