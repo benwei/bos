@@ -34,14 +34,15 @@ LDSCRIPT := ld-script.lds
 
 ifeq ($(KNAME),$(KNAME_OSX))
 NASMW_LDFLAGS = -f elf
-MAC_CFLAGS=-m32
+EXTRA_CFLAGS=-m32
 else
+EXTRA_CFLAGS=-m32
 NASMW_LDFLAGS = -f elf32
 endif
 
 COMM_FLAGS=-nostdlib
 COMM_LDFLAGS=--no-undefined -T $(LDSCRIPT) -Map $(SYSNAME).map 
-CFLAGS =$(MAC_CFLAGS) -I. $(KERN_INCS) -Iapps \
+CFLAGS =$(EXTRA_CFLAGS) -I. $(KERN_INCS) -Iapps \
 	-Wall -fno-builtin -O0 -g
 
 ifeq ($(KNAME),$(KNAME_CYGWIN))
