@@ -33,7 +33,7 @@ static int key_caps  = 0;
 
 #define MAX_KEYTB_SIZE 0x54
 /* map for keyboard with 101 key */
-char keytable[MAX_KEYTB_SIZE] = {
+static char keytable[MAX_KEYTB_SIZE] = {
       //0    1    2     3    4    5    6    7    8    9    A    B    C    D    E   F
 	0,   0,   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', BOS_CHAR_MINUS, BOS_CHAR_EQUAL, 0,   BOS_CHAR_TAB,
 	'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 0,   0,   'a', 's',
@@ -43,7 +43,7 @@ char keytable[MAX_KEYTB_SIZE] = {
 	'2', '3', '0', '.'
 };
 
-char keytable_shift[MAX_KEYTB_SIZE] = {
+static char keytable_shift[MAX_KEYTB_SIZE] = {
       //0    1    2     3    4    5    6    7    8    9    A    B    C    D    E   F
 	')', ')', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', 0,   BOS_CHAR_TAB,
 	'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 0,   0,   'A', 'S',
@@ -57,7 +57,7 @@ char keytable_shift[MAX_KEYTB_SIZE] = {
 #define MEM_MB(x) ((x)/1024/1024)
 
 
-void dump_e820(struct session *s)
+static void dump_e820(struct session *s)
 {
 	int i;
 	const char *msg;
@@ -81,7 +81,7 @@ void dump_e820(struct session *s)
 	}
 }
 
-void command_test(struct session *s)
+static void command_test(struct session *s)
 {
 	int *i = (int *)malloc(sizeof(int));
         if (i) {
@@ -90,7 +90,7 @@ void command_test(struct session *s)
 
 }
 
-void command_free(struct session *s)
+static void command_free(struct session *s)
 {
 	int freemem = memman_total((struct MEMMAN *) MEMMAN_ADDR);
 	dump_e820(s);
@@ -105,7 +105,7 @@ static inline void show_prompt(struct session *s, const char *prompt)
 	puts(prompt);
 }
 
-void command_ps(struct session *s)
+static void command_ps(struct session *s)
 {
 	const char *msg_state[] = {"running", "stop", "idle"};
 	
@@ -121,17 +121,17 @@ void command_ps(struct session *s)
 	}
 }
 
-void command_clear(struct session *s)
+static void command_clear(struct session *s)
 {
 	clear_screen();
 }
 
-void command_uname(struct session *s)
+static void command_uname(struct session *s)
 {
 	printf("BenOS "BOS_VERSION"\n");
 }
 
-void hexdump(struct session *s, const char *addr , int len)
+static void hexdump(struct session *s, const char *addr , int len)
 {
 	int i = len;
 	char c = 0;
@@ -156,7 +156,7 @@ void hexdump(struct session *s, const char *addr , int len)
 	}
 }
 
-void command_type(struct session *s)
+static void command_type(struct session *s)
 {
 	int i = 0;
 	const char *arg = s->buf + 5;
@@ -170,34 +170,37 @@ void command_type(struct session *s)
 	}
 }
 
-void command_lspci(struct session *s)
+static void command_lspci(struct session *s)
 {
 	lspci();
 }
 
 void user_div_zero(void);
 
-void command_ud2() {
+static void command_ud2() {
 	__asm __volatile("ud2");	
 }
 
-void command_divzero(struct session *s)
+static void command_divzero(struct session *s)
 {
 	user_div_zero();
 }
 
-void command_ticks()
+static void command_ticks()
 {
 	printf("ticks: %d\n", sys_get_ticks());
 }
 
+/* FIXME: possible to use register or loader method to run hello app */
 int hello_main(void);
-void command_hello(struct session *s)
+
+static void command_hello(struct session *s)
 {
+    /* using to testing syscall uputs*/
 	hello_main();
 }
 
-void command_run(struct session *s) {
+static void command_run(struct session *s) {
 	task_start(2);
 	/* blocking util task stopped */
 	task_wait(2);
