@@ -4,6 +4,7 @@
 #include "os_bits.h"
 #include "string.h"
 #include "console.h"
+#include "errno.h"
 
 /************************************************************
 * api for string processing
@@ -251,7 +252,6 @@ unsigned long strtoul(const char *str, char **endptr, int requestedbase)
 	int base = 10;
 	int nchars = 0;
 	int leadingZero = 0;
-	unsigned char strtoul_err = 0;
 
 	while ((c = *str) != 0) {
 		if (nchars == 0 && c == '0') {
@@ -278,11 +278,11 @@ unsigned long strtoul(const char *str, char **endptr, int requestedbase)
 			digit = c - 'A' + 10;
 		}
 		else {
-			strtoul_err = 3;
+			errno = EINVAL;
 			return 0;
 		}
 		if (digit >= base) {
-			strtoul_err = 4;
+			errno = EINVAL;
 			return 0;
 		}
 		num *= base;
