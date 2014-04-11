@@ -3,8 +3,7 @@
 #include "net.h"
 
 void command_net(struct session *s) {
-	int r = 0;
-	r = show_nic();
+	show_nic();
 }
 
 

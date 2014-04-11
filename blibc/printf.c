@@ -137,11 +137,10 @@ int printf(const char *fmt, ...)
 
 
 void panic(const char *fmt, ...) {
-	int rc = 0;
 	char buf[BUFSIZE];
 	va_list args;
 	va_start(args, fmt);
-	rc = vsprintf(buf, fmt, args);
+	vsprintf(buf, fmt, args);
 	va_end(args);
 	puts(buf);
 	/* need kernel exception dump ; system halt */

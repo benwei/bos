@@ -379,15 +379,13 @@ e100_receive (char *data)
 
 static void e100_init()
 {
-	int r = 0;
 	page_net_init();
 	/* reset device before using */
 	e100_reset();
 	printf("e100_reset\n");
 
 	/* all interrupts to be disabled */
-	r = e100_exec_cmd(CSR_INT, 1);
-	/* printf("e100 CSR_INT ret=%d\n", r); */
+	e100_exec_cmd(CSR_INT, 1);
 
 	cbl_init();
 	rfa_init();
