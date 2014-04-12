@@ -14,9 +14,8 @@ KERN_INCS +=-Iinclude
 
 # source files
 USER_SRC= $(shell ls user/*.c) 
-FS_SRC= $(shell ls fs/*.c) $(shell ls fs/vfs/*.c) $(shell ls fs/ramfs/*.c)
 KERN_SRC = $(wildcard kernel/*.c) 
-SHELL_SRC= $(shell ls lib/*.c) $(shell ls lib/errno/*.c) $(shell ls blibc/*.c) $(shell ls apps/*.c) $(FS_SRC)
+SHELL_SRC= $(shell ls lib/*.c) $(shell ls lib/errno/*.c) $(shell ls blibc/*.c) $(shell ls apps/*.c)
 HW_DEP_ASM_SRC=kernel/main.s kernel/osfunc.s 
 
 # object files
