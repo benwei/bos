@@ -20,7 +20,17 @@ ifeq ($(QDEBUG),1)
  QEMUEXTRA=-debug-e100
 endif
 QEMU=$(QEMUOSE) $(QEMUEXTRA)
+else
+
+# due to no qemu binary exists with qemu 2.1.2 on Mac OS X 10.10.5 brew install version, 
+# try to use qemu-system instead
+ifeq ($(shell which $(QEMU)),)
+ QEMU=qemu-system-i386
+ ifeq ($(shell which $(QEMU)),)
+ $(error not found qemu cli, please install it before run)
+ endif
 endif
+endif # for QEMUOSE custom install
 
 all: run
 
