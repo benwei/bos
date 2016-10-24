@@ -27,7 +27,12 @@ CROSS_COMPILE=/usr/local/cross/bin/i586-elf-
 else
 ifeq ($(KNAME),$(KNAME_OSX))
 # add some code for osx environment
-CROSS_COMPILE=/usr/local/gcc-4.5.2-for-linux64/bin/x86_64-pc-linux-
+ LOCAL_GCC:=$(wildcard /usr/local/gcc-4*)
+ ifneq ($(LOCAL_GCC),)
+    CROSS_COMPILE=/usr/local/gcc-4.5.2-for-linux64/bin/x86_64-pc-linux-
+ else
+   $(error 'Error: Missing CROSS Complier')
+ endif
 endif
 endif
 
