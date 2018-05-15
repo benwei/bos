@@ -218,6 +218,7 @@ typedef struct st_cmdtable {
 } cmdtable;
 
 static void command_help(struct session *s);
+static void command_reboot(struct session *s);
 
 static cmdtable command_table[] = {
 	{"clear",  5, &command_clear, "clear screen"},
@@ -235,8 +236,18 @@ static cmdtable command_table[] = {
 	{"net",    3, &command_net,   "list ethernet info" },
 	{"test",   4, &command_test,  "test vfs info" },
 	{"ticks",  5, &command_ticks,  "get ticks" },
+	{"reboot", 6, &command_reboot,  "reboot" },
 	{"", 0, NULL}
 };
+
+static void
+command_reboot(struct session *s)
+{
+    printf("rebooting...\n");
+    asm volatile ("cli");
+    outb(0x64,0xFE);
+    asm volatile ("hlt");
+}
 
 static void
 command_help(struct session *s)
