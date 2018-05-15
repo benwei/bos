@@ -11,9 +11,9 @@ IMG_NAME = $(SRCROOT)/bos.img
 TESTDIRS=$(wildcard *)
 
 # -redir tcp:4080::80
-# tells qemu to listen on port 4080 and to forward connections to bos's port 80.
-NET_OPT=-net user -net nic,model=i82559er -redir tcp:4080::80 $(QEMUEXTRA)
-#NET_OPT=-net user -net nic,model=i82559er $(QEMUEXTRA)
+# tells qemu to listen on port 6080 and to forward connections to bos's port 80.
+NET_OPT=-netdev user,id=net0,hostfwd=tcp::6080-:80 -device i82559er,netdev=net0,mac=00:01:23:45:67:89 $(QEMUEXTRA)
+
 ifneq ($(shell which qemu-system-x86_64),)
 QEMU=qemu-system-x86_64
 else
@@ -47,7 +47,7 @@ run:
 ifeq ($(KNAME),$(KNAME_CYGWIN))
 	$(QEMU)$(QEMUMODEL) -fda "$(IMG_NAME)" $(NET_OPT)
 else
-	$(QEMU)$(QEMUMODEL) -M $(MACHINE) -fda "$(IMG_NAME)" $(NET_OPT)
+	$(QEMU)$(QEMUMODEL) -M $(MACHINE) -drive format=raw,file=$(IMG_NAME),index=0,if=floppy $(NET_OPT)
 endif
 
 check:
