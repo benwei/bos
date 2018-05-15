@@ -21,6 +21,7 @@ struct trapframe {
 };
 
 #define OS_KERN_CS 0x00000008
+#define TRAP_QEMU_MOUSE_CLICK 44
 
 extern int trap_handlers[];
 

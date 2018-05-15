@@ -72,7 +72,15 @@ int trap_handler(struct trapframe *tf)
 		return kern_syscall(tf->regs.eax, 
 			     tf->regs.edx,
 			     tf->regs.ecx);
-		break;
+    case TRAP_QEMU_MOUSE_CLICK: // not handle yet
+        // [fixed] got 44 trap_handler while mouse click the window of qemu at the first time
+        // after qemu-system-x86_64 started (tested in QEMU version 2.12.0, OSX 10.13.4)
+        printf("event mouse grap qemu window trapno(%u) eax: %04x, edx: %04x, ecx: %04x\n",
+                 tf->trapno,
+                 tf->regs.eax,
+                 tf->regs.edx,
+                 tf->regs.ecx);
+		return 0;
 	default:
 		print_tf(tf);
 		panic("panic: system halt\n");

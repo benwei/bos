@@ -1,3 +1,7 @@
+# changes
+- [fixed] trap 44 while mouse click the window of qemu at the first time
+   after qemu-system-x86_64 started (tested in QEMU 2.12.0,OSX 10.13.4)
+
 # Build Environment
 - you need gcc and nasm
 - you need dd and mcopy for generated the raw floppy image
