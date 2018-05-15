@@ -420,6 +420,8 @@ int kb_input_handling (struct session *s, int c)
 				command_exec(s);
 				s->buflen = 0;
 				s->buf[0] = 0;
+            } else if (c == KEY_ALT) {
+                // Not Used Yet
 			} else if (ch != 0) {
 				putc(ch);
 				if (s->buflen < MAX_CMD_BUF_SIZE - 1) {
@@ -428,8 +430,6 @@ int kb_input_handling (struct session *s, int c)
 			} else {
 				printf_scancode(s, c);
 			}
-		} else {
-			// printf_scancode(s, c);
 		}
 	}
 

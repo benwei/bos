@@ -10,6 +10,7 @@
 #define KEY_SHIFT_L 0x2a
 #define KEY_SHIFT_R 0x36
 #define KEY_TAB     0x0f
+#define KEY_ALT     0x38
 #define KEY_SHIFT_RL KEY_SHIFT_L | KB_RELEASED
 #define KEY_SHIFT_RR KEY_SHIFT_R | KB_RELEASED
 
