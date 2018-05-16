@@ -10,7 +10,8 @@ endif
 IMG_NAME = $(SRCROOT)/bos.img
 TESTDIRS=$(wildcard *)
 
-# -redir tcp:4080::80
+# [Workaround] change to use QEMU HID Mouse for preventing IDT trapno 0x2c (44) while using QEMU PS/2 Mouse
+QEMUEXTRA += -usb -device usb-mouse
 # tells qemu to listen on port 6080 and to forward connections to bos's port 80.
 NET_OPT=-netdev user,id=net0,hostfwd=tcp::6080-:80 -device i82559er,netdev=net0,mac=00:01:23:45:67:89 $(QEMUEXTRA)
 
