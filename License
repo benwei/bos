@@ -10,11 +10,11 @@
 - lib/*.c
 
 # BSD License from Ben's OS
-boot/ (contrib by Dennis) <br>
-apps/ <br>
-kernel/ <br>
-blibc/ <br>
-test/ <br>
+boot/ (contrib by Dennis)
+apps/
+kernel/
+blibc/
+test/
 
 # Reference Materials:
  - Books: 
@@ -23,5 +23,5 @@ test/ <br>
 
 # Website:
  - Wiki OSDev (http://wiki.osdev.org)
- - Site of JuluOS Dev (http://julu.staros.mobi)
+ - Site of JuluOS Dev Community (http://juluos.org)
 
