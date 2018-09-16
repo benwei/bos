@@ -1,3 +1,4 @@
+/* vim: set ts=8 sw=8 tw=0 noet : */
 /*
 * @file init.c
 * setup irq for keyboard and timer
@@ -27,11 +28,27 @@ struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) ADR_GDT;
 
 int floppy = 0;
 
+void dump_gdt(void)
+{
+	int i = 0;
+	for(i = 0; i < 4; i++) {
+		printf("gdt[%d],ll=%04x, bl=%04x, bm=%02x,ar=%02x,lh=%02x,bh=%02x\n", i,
+			gdt[i].limit_low,
+			gdt[i].base_low,
+			gdt[i].base_mid,
+			gdt[i].access_right,
+			gdt[i].limit_high,
+			gdt[i].base_high
+		);
+	}
+}
+
 void setup_hw(void)
 {
 	asm_cli();
 	puts("init gdt and idt\n");
 	init_gdtidt();
+
 	puts("init pic\n");
 	init_pic();
 	outb(PIC0_IMR, 0xf8); /* allow PIT, PIC1 and keyboard  */
@@ -87,6 +104,8 @@ void _benmain(void)
 	tss_a.iomap = 0x40000000;
 	set_segmdesc(gdt + 0, 103, (int) &tss_a, AR_TSS32);
 
+	dump_gdt();
+
 	task_init(memman);
 	/* Unfortunate try the switch back to 0*8 (_benmain) with farjmp but not working.
 	* And the reason still unknown.
@@ -101,6 +120,6 @@ void _benmain(void)
 	pci_init();
 	farjmp(0, 4*8);
 
-	puts("\nSystem Halted                                    \n");
+        puts("\nSystem Halted                                    \n");
 	_syshalt();
 }
