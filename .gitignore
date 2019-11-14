@@ -9,3 +9,4 @@ tags
 *.so
 *.BIN
 *.img
+.config

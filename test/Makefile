@@ -1,5 +1,6 @@
 SRCROOT=..
 include $(SRCROOT)/mk.defines
+-include ../.config
 
 ifeq ($(KNAME),$(KNAME_OSX))
 MACHINE=pc
@@ -38,6 +39,16 @@ ifeq ($(shell which $(QEMU)),)
 endif
 endif # for QEMUOSE custom install
 
+ifeq (y,$(CONFIG_PCI_USB))
+ifeq (y,$(CONFIG_PIC_USB_STICK))
+EXTRA += -drive if=none,id=stick,file=../usb.img,format=raw
+EXTRA += -device nec-usb-xhci,id=xhci
+EXTRA += -device usb-storage,bus=xhci.0,drive=stick
+else
+EXTRA += -device qemu-xhci
+endif
+endif
+
 all: run
 
 run:
@@ -46,16 +57,16 @@ run:
 		exit 1 ; \
 	fi 
 ifeq ($(KNAME),$(KNAME_CYGWIN))
-	$(QEMU)$(QEMUMODEL) -fda "$(IMG_NAME)" $(NET_OPT)
+	$(QEMU)$(QEMUMODEL) -fda "$(IMG_NAME)" $(NET_OPT) $(EXTRA)
 else
-	$(QEMU)$(QEMUMODEL) -M $(MACHINE) -drive format=raw,file=$(IMG_NAME),index=0,if=floppy $(NET_OPT)
+	$(QEMU)$(QEMUMODEL) -M $(MACHINE) -drive format=raw,file=$(IMG_NAME),index=0,if=floppy $(NET_OPT) $(EXTRA)
 endif
 
 check:
 	@echo OS=$(KNAME); echo VM=$(MACHINE)
 
 clean:
-	rm -f *.img
+	@rm -f *.img
 	@for i in $(TESTDIRS) ; do \
 	if [ -d "$$i" ]; then \
 		echo "clean $$i" ; \
@@ -63,6 +74,6 @@ clean:
 	fi done
 
 pytest:
-	make -C pytest
+	@make -C pytest
 
 .PHONY: pytest

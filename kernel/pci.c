@@ -153,6 +153,18 @@ static const char *pci_subclass_network_string[] = {
 	"Ethernet controller", /* 0 */
 };
 
+/*
+ref:
+https://pcisig.com/sites/default/files/files/PCI_Code-ID_r_1_11__v24_Jan_2019.pdf
+*/
+
+static const char *pci_usb_subclass_string[] =
+{
+        "Universal Serial Bus"
+};
+
+#define MAX_PCI_CLASS_STRING 7
+
 static const char *pci_class_string[] =
 {
         "Unknown", 	      /* 0 */
@@ -167,11 +179,22 @@ static const char *pci_class_string[] =
 const char *get_pci_class_string(unsigned short classcode) {
 	int subclass = classcode & 0xFF;
 	classcode = classcode >> 8;
-	if (classcode > 6) return pci_class_string[0];
-	if (classcode == PCI_CLASS_NETWORK
-	    && subclass == PCI_SUBCLASS_NETWORK_ETHERNET) {
-		return pci_subclass_network_string[0];
-	}
+	if (classcode >= MAX_PCI_CLASS_STRING) return pci_class_string[0];
+	switch(classcode) {
+        case PCI_CLASS_NETWORK:
+            if (subclass == PCI_SUBCLASS_NETWORK_ETHERNET)
+            {
+                return pci_subclass_network_string[0];
+            }
+        break;
+        case PCI_CLASS_SERIALBUS:
+            if (subclass == PCI_SUBCLASS_SERIALBUS_USB)
+            {
+                return pci_usb_subclass_string[0];
+            }
+        break;
+    }
+
 	return pci_class_string[classcode];
 }
 

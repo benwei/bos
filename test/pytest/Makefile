@@ -8,10 +8,10 @@ all: $(BLIBC_SHARED)
 	python alltests.py
 
 %.o :%.c
-	$(CC) -c $< -o $@ $(CFLAGS)
+	@echo "build [$@]" ; $(CC) -c $< -o $@ $(CFLAGS)
 
 $(BLIBC_SHARED): $(OBJS)
-	$(CC) -shared -o $@ $^
+	@echo "link [$@]" ; $(CC) -shared -o $@ $^
 
 clean:
-	rm -f $(BLIBC_SHARED) $(OBJS)
+	@rm -f $(BLIBC_SHARED) $(OBJS)

@@ -119,29 +119,30 @@ hex:
 		echo $< with -save-temps || exit 1 ; \
 		$(CC) -c $(CFLAGS) $< -o $@ -save-temps || exit 1 ; \
 	else \
-		echo "building [$<] -> [$@]" ; \
+		echo "building [$@]" ; \
 		$(CC) -c $(CFLAGS) $< -o $@ || exit 1 ; \
 	fi
 	
 
 # NASM + LD to ELF, objcopy to fat binary (Not working, it seems to be incompatible.)
 MYOS.BIN: %.BIN: myos.elf ld-script.lds
-	@echo "convert $< to $@"
+	@echo "convert $< to $@" ; \
 	$(OBJCOPY) $(OBJCOPYFLAGS) $< $@
 
 myos.elf: $(HW_DEP_ASM_OBJ) $(KERN_OBJS)
-	$(LD) $(LDFLAGS) -o $@ $^
+	@echo link [$@] ; $(LD) $(LDFLAGS) -o $@ $^
 
 $(HW_DEP_ASM_OBJ) : %.o : %.s
+	@echo "building asm [$@]" ; \
 	$(NASMW) $(NASMW_LDFLAGS)  $< -o $@  -Iinclude/ 
 
 info:
 	@echo "PLATFORM=[$(KNAME)]"
 
 clean:
-	make -C boot clean
-	rm -f $(IMG_NAME) *.elf *.img $(SYSBIN) *.o *.lst *.map $(KERN_OBJS) $(HW_DEP_ASM_OBJ) $(OS_LOADER)
-	make -C test clean
+	@make -C boot clean
+	@rm -f $(IMG_NAME) *.elf *.img $(SYSBIN) *.o *.lst *.map $(KERN_OBJS) $(HW_DEP_ASM_OBJ) $(OS_LOADER)
+	@make -C test clean
 
 ctags:
 	ctags -R .

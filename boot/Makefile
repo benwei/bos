@@ -18,17 +18,17 @@ all:	$(TARGET)
 
 .SUFFIXES: .s
 .s.o:
-	$(AS) -g $^ -o $@
+	@echo "build asm [$@]" ; $(AS) -g $^ -o $@
 
 %.elf:
-	$(LD) -g -o $@ -T $(@:.elf=.ld) $^
+	@echo "link $@" ; $(LD) -g -o $@ -T $(@:.elf=.ld) $^
 
 %.bin:
-	$(OBJCOPY) -j .text -O binary $^ $@
+	@echo "convert $^ to $@" ; $(OBJCOPY) -j .text -O binary $^ $@
 
 .PHONY: clean
 clean:
-	rm -f $(TARGET) $(OBJS) *.bin *.elf
+	@echo "clean [boot]"; rm -f $(TARGET) $(OBJS) *.bin *.elf
 
 -include *.d
 

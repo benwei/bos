@@ -33,6 +33,6 @@ run: $(BINS)
 	done
 
 clean:
-	rm -f $(BINS) *.o *.dasm
-	# remove coredump on cygwin
-	rm -f *.stackdump
+	@rm -f $(BINS) *.o *.dasm
+	@# remove coredump on cygwin
+	@rm -f *.stackdump

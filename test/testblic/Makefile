@@ -18,4 +18,4 @@ test: $(TARGET_BIN)
 	./$(TARGET_BIN)
 
 clean: 
-	rm -f $(TARGET_BIN) $(OBJS)
+	@rm -f $(TARGET_BIN) $(OBJS)
