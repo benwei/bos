@@ -40,18 +40,23 @@
   ```
   $ sh ./scripts/setup_ubuntu.sh
   ```
-- install nasm <br/>
+
+- install nasm 
+
   ```
   $ sudo apt-get install nasm
   ```
+
+  tested versions of NSAM
   - NASM version 2.08.01 compiled on Jun  5 2010
   - NASM version 2.09.04 compiled on Nov 26 2010
 
 - install qemu
 
  ```
- $ sudo apt-get install qemu <br/>
+ $ sudo apt-get install qemu
  ```
+
  - tested with qemu version : 0.12.5 - 0.14.0
 
 - install mtools
@@ -84,9 +89,9 @@
 - download [mtools](http://www.gnu.org/s/mtools/download.html)
 
   ```
-  ./configure <br/>
-  make <br/>
-  make install <br/>
+  ./configure
+  make
+  make install
   ```
   - ```/usr/local/bin/mcopy``` will be used
  
